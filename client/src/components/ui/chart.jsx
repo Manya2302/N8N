@@ -42,7 +42,6 @@ const ChartContainer = React.forwardRef(
       typeof RechartsPrimitive.ResponsiveContainer
     >["children"]
   }
->(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
 
@@ -112,7 +111,6 @@ const ChartTooltipContent = React.forwardRef(
       nameKey?: string
       labelKey?: string
     }
->(
   (
     {
       active,
@@ -265,7 +263,6 @@ const ChartLegendContent = React.forwardRef(
       hideIcon?: boolean
       nameKey?: string
     }
->(
   (
     { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
     ref
