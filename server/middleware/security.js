@@ -79,7 +79,7 @@ export function auditLogger(action) {
     res.send = function(data) {
       // Only log successful operations (2xx status codes)
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        const { storage } = require("../storage.ts");
+        const { storage } = require("../storage.js");
         
         // Extract resource info from request
         let resource = req.route?.path || req.path;

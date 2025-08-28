@@ -32,7 +32,7 @@ From the JavaScript Supabase blueprint:
 
 From the fullstack_js guidelines:
 - Put most functionality in frontend, backend only for data persistence and API calls
-- Generate data model first in shared/schema.ts
+- Generate data model first in shared/schema.js
 - Use session-based storage and thin API routes
 - Use wouter for routing and react-query for data fetching
 
@@ -40,14 +40,14 @@ From the fullstack_js guidelines:
 
 ```json
 [
-    {"path": "shared/schema.ts", "status": "overwritten"},
-    {"path": "server/storage.ts", "status": "overwritten"},
-    {"path": "server/routes.ts", "status": "overwritten"},
+    {"path": "shared/schema.js", "status": "overwritten"},
+    {"path": "server/storage.js", "status": "overwritten"},
+    {"path": "server/routes.js", "status": "overwritten"},
     {"path": "server/auth.js", "status": "new"},
     {"path": "server/middleware.js", "status": "new"},
     {"path": "client/index.html", "status": "overwritten"},
-    {"path": "client/src/main.tsx", "status": "overwritten"},
-    {"path": "client/src/App.tsx", "status": "overwritten"},
+    {"path": "client/src/main.jsx", "status": "overwritten"},
+    {"path": "client/src/App.jsx", "status": "overwritten"},
     {"path": "client/src/index.css", "status": "overwritten"},
     {"path": "client/src/lib/api.js", "status": "new"},
     {"path": "client/src/lib/auth.js", "status": "new"},
