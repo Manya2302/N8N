@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduManage - School Management System</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            },
+            fontFamily: {
+                sans: ["Inter", "system-ui", "sans-serif"],
+            }
+        }
+    };
+    </script>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Hero Icons -->
+    <script src="https://unpkg.com/heroicons@2.0.18/24/outline/index.js" type="module"></script>
+    
+    <style>
+        :root {
+            --radius: 8px;
+            --background: hsl(0 0% 100%);
+            --foreground: hsl(224 71% 4%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(224 71% 4%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(224 71% 4%);
+            --primary: hsl(220 98% 61%);
+            --primary-foreground: hsl(210 20% 98%);
+            --secondary: hsl(158 64% 52%);
+            --secondary-foreground: hsl(210 20% 98%);
+            --muted: hsl(220 14% 96%);
+            --muted-foreground: hsl(220 8% 46%);
+            --accent: hsl(220 14% 96%);
+            --accent-foreground: hsl(220 8% 46%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(210 20% 98%);
+            --border: hsl(220 13% 91%);
+            --input: hsl(220 13% 91%);
+            --ring: hsl(220 98% 61%);
+        }
+        
+        .dashboard-card {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, hsl(220 98% 51%) 100%);
+        }
+        
+        .secondary-stat {
+            background: linear-gradient(135deg, var(--secondary) 0%, hsl(158 64% 42%) 100%);
+        }
+        
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .nav-link:hover {
+            background-color: var(--accent);
+            border-radius: var(--radius);
+        }
+        
+        .nav-link.active {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: var(--radius);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="min-h-screen flex">
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-64 bg-card border-r border-border shadow-sm">
+            <div class="p-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-semibold">EduManage</h1>
+                        <p class="text-xs text-muted-foreground">School Management</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="px-4 pb-4">
+                <div class="mb-4">
+                    <p class="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Teacher Dashboard</p>
+                    <ul class="space-y-1">
+                        <li><a href="#" class="nav-link active flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                            Overview
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Class Schedule
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Attendance
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Grades & Progress
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            Parent Communication
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            Assignments
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                            Student Profiles
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Admin Dashboard</p>
+                    <ul class="space-y-1">
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Teacher Management
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                            </svg>
+                            Analytics & Reports
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z"></path>
+                            </svg>
+                            Announcements
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                            Fee Management
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                            Transport
+                        </a></li>
+                        <li><a href="#" class="nav-link flex items-center px-3 py-2 text-sm font-medium">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                            Digital Library
+                        </a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 bg-muted/30">
+            <!-- @COMPONENT: Header -->
+            <header class="bg-card border-b border-border p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-semibold">Teacher Dashboard</h2>
+                        <p class="text-muted-foreground">Welcome back, <span data-bind="teacher.name" class="font-medium">Ms. Sarah Johnson</span></p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Profile Menu -->
+                        <div class="flex items-center space-x-2">
+                            <button class="p-2 hover:bg-accent rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z"></path>
+                                </svg>
+                            </button>
+                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-sm font-medium text-primary-foreground">SJ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- @COMPONENT: DashboardContent -->
+            <div class="p-6">
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- @MAP: statsCards.map(card => ( -->
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Total Students</p>
+                                <p class="text-2xl font-semibold" data-bind="stats.totalStudents">156</p>
+                            </div>
+                            <div class="stat-card w-12 h-12 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Present Today</p>
+                                <p class="text-2xl font-semibold" data-bind="stats.presentToday">142</p>
+                            </div>
+                            <div class="secondary-stat w-12 h-12 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Pending Assignments</p>
+                                <p class="text-2xl font-semibold" data-bind="stats.pendingAssignments">23</p>
+                            </div>
+                            <div class="w-12 h-12 bg-destructive rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-destructive-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Today's Classes</p>
+                                <p class="text-2xl font-semibold" data-bind="stats.todayClasses">6</p>
+                            </div>
+                            <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Main Dashboard Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Today's Schedule -->
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Today's Schedule</h3>
+                            <button class="text-primary text-sm hover:underline">View All</button>
+                        </div>
+                        <div class="space-y-4">
+                            <!-- @MAP: todaySchedule.map(class => ( -->
+                            <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                <div>
+                                    <p class="font-medium" data-bind="class.subject">Mathematics</p>
+                                    <p class="text-sm text-muted-foreground" data-bind="class.grade">Grade 10-A</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium" data-bind="class.time">9:00 AM</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="class.room">Room 101</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                <div>
+                                    <p class="font-medium" data-bind="class.subject">Physics</p>
+                                    <p class="text-sm text-muted-foreground" data-bind="class.grade">Grade 11-B</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium" data-bind="class.time">11:30 AM</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="class.room">Lab 2</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                <div>
+                                    <p class="font-medium" data-bind="class.subject">Chemistry</p>
+                                    <p class="text-sm text-muted-foreground" data-bind="class.grade">Grade 12-A</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium" data-bind="class.time">2:00 PM</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="class.room">Lab 1</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Recent Activity</h3>
+                            <button class="text-primary text-sm hover:underline">View All</button>
+                        </div>
+                        <div class="space-y-4">
+                            <!-- @MAP: recentActivity.map(activity => ( -->
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm" data-bind="activity.description">Assignment submitted by John Smith</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="activity.timestamp">2 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-secondary rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm" data-bind="activity.description">Attendance marked for Grade 10-A</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="activity.timestamp">3 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-destructive rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm" data-bind="activity.description">Parent message received</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="activity.timestamp">5 hours ago</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-accent rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm" data-bind="activity.description">Exam scheduled for next week</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="activity.timestamp">1 day ago</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- @MAP: quickActions.map(action => ( -->
+                            <button class="p-4 bg-muted hover:bg-accent rounded-lg text-center transition-colors" data-event="click:handleQuickAction" data-implementation="Implement quick action functionality">
+                                <svg class="w-6 h-6 mx-auto mb-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-sm font-medium">Mark Attendance</p>
+                            </button>
+
+                            <button class="p-4 bg-muted hover:bg-accent rounded-lg text-center transition-colors" data-event="click:handleQuickAction">
+                                <svg class="w-6 h-6 mx-auto mb-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4"></path>
+                                </svg>
+                                <p class="text-sm font-medium">Create Assignment</p>
+                            </button>
+
+                            <button class="p-4 bg-muted hover:bg-accent rounded-lg text-center transition-colors" data-event="click:handleQuickAction">
+                                <svg class="w-6 h-6 mx-auto mb-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <p class="text-sm font-medium">Send Message</p>
+                            </button>
+
+                            <button class="p-4 bg-muted hover:bg-accent rounded-lg text-center transition-colors" data-event="click:handleQuickAction">
+                                <svg class="w-6 h-6 mx-auto mb-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <p class="text-sm font-medium">Grade Students</p>
+                            </button>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Sections -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <!-- Student Performance Overview -->
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Student Performance Overview</h3>
+                            <select class="text-sm border border-border rounded px-2 py-1" data-bind="selectedClass">
+                                <option>Grade 10-A</option>
+                                <option>Grade 11-B</option>
+                                <option>Grade 12-A</option>
+                            </select>
+                        </div>
+                        <div class="space-y-4">
+                            <!-- @MAP: studentPerformance.map(student => ( -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-medium text-primary-foreground" data-bind="student.initials">JS</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium" data-bind="student.name">John Smith</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="student.lastSubmission">Last submission: 2 days ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium" data-bind="student.grade">A</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="student.percentage">95%</p>
+                                    </div>
+                                    <div class="w-12 bg-muted rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 95%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-medium text-primary-foreground" data-bind="student.initials">EM</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium" data-bind="student.name">Emma Miller</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="student.lastSubmission">Last submission: 1 day ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium" data-bind="student.grade">B+</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="student.percentage">87%</p>
+                                    </div>
+                                    <div class="w-12 bg-muted rounded-full h-2">
+                                        <div class="bg-secondary h-2 rounded-full" style="width: 87%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-medium text-accent-foreground" data-bind="student.initials">MJ</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium" data-bind="student.name">Michael Johnson</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="student.lastSubmission">Last submission: 3 days ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium" data-bind="student.grade">B</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="student.percentage">82%</p>
+                                    </div>
+                                    <div class="w-12 bg-muted rounded-full h-2">
+                                        <div class="bg-destructive h-2 rounded-full" style="width: 82%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Events & Announcements -->
+                    <div class="dashboard-card bg-card rounded-lg p-6 shadow-sm border border-border">
+                        <h3 class="text-lg font-semibold mb-4">Upcoming Events & Announcements</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: upcomingEvents.map(event => ( -->
+                            <div class="border border-border rounded-lg p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-sm" data-bind="event.title">Parent-Teacher Conference</p>
+                                        <p class="text-xs text-muted-foreground mb-2" data-bind="event.date">March 15, 2024 - 2:00 PM</p>
+                                        <p class="text-xs" data-bind="event.description">Individual meetings scheduled with parents to discuss student progress and academic performance.</p>
+                                    </div>
+                                    <span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded" data-bind="event.type">Meeting</span>
+                                </div>
+                            </div>
+
+                            <div class="border border-border rounded-lg p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-sm" data-bind="event.title">Mid-term Examinations</p>
+                                        <p class="text-xs text-muted-foreground mb-2" data-bind="event.date">March 20-25, 2024</p>
+                                        <p class="text-xs" data-bind="event.description">Mid-term examination schedule for all grades. Exam timetables have been shared with students.</p>
+                                    </div>
+                                    <span class="bg-destructive/10 text-destructive text-xs px-2 py-1 rounded" data-bind="event.type">Exam</span>
+                                </div>
+                            </div>
+
+                            <div class="border border-border rounded-lg p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-sm" data-bind="event.title">Science Fair 2024</p>
+                                        <p class="text-xs text-muted-foreground mb-2" data-bind="event.date">April 5, 2024 - 10:00 AM</p>
+                                        <p class="text-xs" data-bind="event.description">Annual science fair showcasing student projects and experiments across all grade levels.</p>
+                                    </div>
+                                    <span class="bg-secondary/10 text-secondary text-xs px-2 py-1 rounded" data-bind="event.type">Event</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: DashboardContent -->
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @STATE: isLoading:boolean = false -->
+    <!-- @STATE: selectedClass:string = "Grade 10-A" -->
+    <!-- @STATE: userData:object = {name: "Ms. Sarah Johnson", role: "teacher", id: "teacher_123"} -->
+    
+    <script>
+        // TODO: Implement session-based authentication
+        // TODO: Connect to Supabase PostgreSQL database
+        // TODO: Implement role-based access control
+        // TODO: Add WhatsApp integration via AiSensy API
+        // TODO: Integrate with Google Workspace (Sheets, Calendar)
+        // TODO: Add real-time data synchronization
+        
+        (function() {
+            // Navigation functionality
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    // TODO: Implement route handling for different dashboard sections
+                });
+            });
+
+            // Quick action handlers
+            const quickActionButtons = document.querySelectorAll('[data-event*="handleQuickAction"]');
+            quickActionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const actionText = this.querySelector('p').textContent;
+                    console.log(`Quick action triggered: ${actionText}`);
+                    // TODO: Implement specific quick action functionality
+                });
+            });
+
+            // Dashboard data refresh
+            function refreshDashboardData() {
+                // TODO: Fetch real-time data from Supabase
+                // TODO: Update attendance, grades, schedules, etc.
+                console.log('Refreshing dashboard data...');
+            }
+
+            // Initialize dashboard
+            function initDashboard() {
+                refreshDashboardData();
+                // TODO: Set up real-time listeners for data changes
+                // TODO: Initialize notification system
+            }
+
+            // Auto-refresh every 5 minutes
+            setInterval(refreshDashboardData, 5 * 60 * 1000);
+            
+            // Initialize on page load
+            initDashboard();
+        })();
+    </script>
+</body>
+</html>

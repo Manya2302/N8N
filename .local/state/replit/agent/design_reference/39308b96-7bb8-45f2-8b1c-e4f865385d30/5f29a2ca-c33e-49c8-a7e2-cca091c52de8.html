@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduManage - School Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                    serif: ["var(--font-serif)"],
+                    mono: ["var(--font-mono)"],
+                }
+            },
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222 84% 4.9%);
+            --primary: hsl(210 79% 46%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(186 100% 38%);
+            --secondary-foreground: hsl(210 40% 98%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215 16% 47%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222 84% 4.9%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214 32% 91%);
+            --input: hsl(214 32% 91%);
+            --ring: hsl(210 79% 46%);
+            --radius: 0.5rem;
+            --font-sans: 'Inter', system-ui, sans-serif;
+            --chart-1: hsl(12 76% 61%);
+            --chart-2: hsl(173 58% 39%);
+            --chart-3: hsl(197 37% 24%);
+            --chart-4: hsl(43 74% 66%);
+            --chart-5: hsl(27 87% 67%);
+        }
+        
+        .dark {
+            --background: hsl(222 84% 4.9%);
+            --foreground: hsl(210 40% 98%);
+            --card: hsl(222 84% 4.9%);
+            --card-foreground: hsl(210 40% 98%);
+            --popover: hsl(222 84% 4.9%);
+            --popover-foreground: hsl(210 40% 98%);
+            --primary: hsl(210 40% 98%);
+            --primary-foreground: hsl(222 84% 4.9%);
+            --secondary: hsl(217 32% 17%);
+            --secondary-foreground: hsl(210 40% 98%);
+            --muted: hsl(217 32% 17%);
+            --muted-foreground: hsl(215 20% 65%);
+            --accent: hsl(217 32% 17%);
+            --accent-foreground: hsl(210 40% 98%);
+            --destructive: hsl(0 62% 30%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(217 32% 17%);
+            --input: hsl(217 32% 17%);
+            --ring: hsl(212 72% 59%);
+        }
+
+        * {
+            border-color: hsl(var(--border));
+        }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-family: var(--font-sans);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background">
+    <!-- @COMPONENT: Header Navigation -->
+    <header class="bg-card shadow-sm border-b border-border sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-primary-foreground text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-foreground">EduManage</h1>
+                            <p class="text-xs text-muted-foreground">School Management System</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Profile & Notifications -->
+                <div class="flex items-center space-x-4">
+                    <!-- Role Selector -->
+                    <div class="hidden md:block">
+                        <select data-mock="true" class="bg-muted border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option>Student View</option>
+                            <option>Parent View</option>
+                            <option>Teacher View</option>
+                            <option>Admin View</option>
+                        </select>
+                    </div>
+
+                    <!-- Notifications -->
+                    <button class="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </button>
+
+                    <!-- User Menu -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-primary-foreground text-sm"></i>
+                        </div>
+                        <div class="hidden md:block">
+                            <p class="text-sm font-medium text-foreground" data-bind="user.name">Sarah Johnson</p>
+                            <p class="text-xs text-muted-foreground" data-bind="user.role">Grade 10 Student</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header Navigation -->
+
+    <div class="flex min-h-screen">
+        <!-- @COMPONENT: Sidebar Navigation -->
+        <aside class="w-64 bg-card shadow-sm border-r border-border hidden lg:block">
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <!-- Dashboard -->
+                    <div class="bg-primary/10 text-primary px-3 py-2 rounded-md flex items-center space-x-3">
+                        <i class="fas fa-home w-5"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </div>
+
+                    <!-- Academic Section -->
+                    <div class="pt-4">
+                        <h3 class="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Academic</h3>
+                        <div class="mt-2 space-y-1">
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-calendar-check w-5"></i>
+                                <span>Attendance</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-chart-line w-5"></i>
+                                <span>Marks & Grades</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-calendar-alt w-5"></i>
+                                <span>Exam Schedule</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-table w-5"></i>
+                                <span>Time Table</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Communication Section -->
+                    <div class="pt-4">
+                        <h3 class="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Communication</h3>
+                        <div class="mt-2 space-y-1">
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-bullhorn w-5"></i>
+                                <span>Announcements</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-envelope w-5"></i>
+                                <span>Messages</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-calendar-times w-5"></i>
+                                <span>Holiday Notices</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Resources Section -->
+                    <div class="pt-4">
+                        <h3 class="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Resources</h3>
+                        <div class="mt-2 space-y-1">
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-book w-5"></i>
+                                <span>Digital Library</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-credit-card w-5"></i>
+                                <span>Fee Management</span>
+                            </a>
+                            <a href="#" class="px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md flex items-center space-x-3 transition-colors">
+                                <i class="fas fa-bus w-5"></i>
+                                <span>Transport</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar Navigation -->
+
+        <!-- @COMPONENT: Main Content Area -->
+        <main class="flex-1 overflow-auto">
+            <div class="p-6 max-w-7xl mx-auto">
+                <!-- Page Header -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-foreground mb-2">Student Dashboard</h1>
+                    <p class="text-muted-foreground">Welcome back, Sarah! Here's your academic overview.</p>
+                </div>
+
+                <!-- Quick Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Attendance Rate -->
+                    <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Attendance Rate</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="student.attendanceRate">94.5%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-check text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="w-full bg-muted rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full w-[94.5%]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Grade -->
+                    <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Average Grade</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="student.averageGrade">A-</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-green-600 mt-2">↗️ +0.2 from last month</p>
+                    </div>
+
+                    <!-- Pending Assignments -->
+                    <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Pending Tasks</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="student.pendingTasks">3</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-muted-foreground mt-2">2 assignments, 1 project</p>
+                    </div>
+
+                    <!-- Next Exam -->
+                    <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Next Exam</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="student.nextExamDays">5 days</p>
+                            </div>
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-muted-foreground mt-2" data-bind="student.nextExamSubject">Mathematics</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- Recent Announcements -->
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-semibold text-foreground">Recent Announcements</h2>
+                                <button class="text-primary hover:text-primary/80 text-sm font-medium">View All</button>
+                            </div>
+                            
+                            <!-- @MAP: announcements.map(announcement => ( -->
+                            <div class="space-y-4">
+                                <div class="border-l-4 border-primary bg-primary/5 p-4 rounded-r-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-foreground" data-mock="true">Mid-Term Exam Schedule Released</h3>
+                                            <p class="text-muted-foreground text-sm mt-1" data-mock="true">The mid-term examination schedule for all grades has been published. Please check your individual timetable.</p>
+                                            <div class="flex items-center mt-2 text-xs text-muted-foreground">
+                                                <i class="fas fa-user-tie mr-1"></i>
+                                                <span data-mock="true">Principal's Office</span>
+                                                <span class="mx-2">•</span>
+                                                <span data-mock="true">2 hours ago</span>
+                                            </div>
+                                        </div>
+                                        <span class="bg-destructive text-destructive-foreground px-2 py-1 rounded-full text-xs font-medium">Urgent</span>
+                                    </div>
+                                </div>
+
+                                <div class="border-l-4 border-secondary bg-secondary/5 p-4 rounded-r-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-foreground" data-mock="true">Parent-Teacher Conference</h3>
+                                            <p class="text-muted-foreground text-sm mt-1" data-mock="true">Schedule your parent-teacher conference for this semester. Booking opens today at 9:00 AM.</p>
+                                            <div class="flex items-center mt-2 text-xs text-muted-foreground">
+                                                <i class="fas fa-chalkboard-teacher mr-1"></i>
+                                                <span data-mock="true">Academic Department</span>
+                                                <span class="mx-2">•</span>
+                                                <span data-mock="true">1 day ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded-r-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-foreground" data-mock="true">Holiday Notice - Diwali Break</h3>
+                                            <p class="text-muted-foreground text-sm mt-1" data-mock="true">School will remain closed from October 30th to November 3rd for Diwali celebrations.</p>
+                                            <div class="flex items-center mt-2 text-xs text-muted-foreground">
+                                                <i class="fas fa-calendar-times mr-1"></i>
+                                                <span data-mock="true">Administration</span>
+                                                <span class="mx-2">•</span>
+                                                <span data-mock="true">3 days ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+
+                        <!-- Weekly Schedule -->
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-semibold text-foreground">This Week's Schedule</h2>
+                                <div class="flex items-center space-x-2">
+                                    <button class="p-2 text-muted-foreground hover:text-foreground transition-colors">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span class="text-sm font-medium text-foreground" data-mock="true">Week of Oct 21-25, 2024</span>
+                                    <button class="p-2 text-muted-foreground hover:text-foreground transition-colors">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-7 gap-2 mb-4">
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Sun</div>
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Mon</div>
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Tue</div>
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Wed</div>
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Thu</div>
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Fri</div>
+                                <div class="text-center text-sm font-medium text-muted-foreground py-2">Sat</div>
+                            </div>
+
+                            <div class="grid grid-cols-7 gap-2">
+                                <div class="p-2 text-center text-muted-foreground">20</div>
+                                <div class="p-2 bg-primary/10 text-primary rounded-md text-center relative">
+                                    <span class="font-medium">21</span>
+                                    <div class="text-xs mt-1">Math Exam</div>
+                                </div>
+                                <div class="p-2 text-center">22</div>
+                                <div class="p-2 bg-secondary/10 text-secondary rounded-md text-center relative">
+                                    <span class="font-medium">23</span>
+                                    <div class="text-xs mt-1">Science Fair</div>
+                                </div>
+                                <div class="p-2 text-center">24</div>
+                                <div class="p-2 bg-green-100 text-green-700 rounded-md text-center relative">
+                                    <span class="font-medium">25</span>
+                                    <div class="text-xs mt-1">Sports Day</div>
+                                </div>
+                                <div class="p-2 text-center text-muted-foreground">26</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-8">
+                        <!-- Quick Actions -->
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <h2 class="text-xl font-semibold text-foreground mb-4">Quick Actions</h2>
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center space-x-3 p-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>Mark Attendance</span>
+                                </button>
+                                <button class="w-full flex items-center space-x-3 p-3 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
+                                    <i class="fas fa-upload"></i>
+                                    <span>Submit Assignment</span>
+                                </button>
+                                <button class="w-full flex items-center space-x-3 p-3 bg-muted text-muted-foreground rounded-md hover:bg-accent transition-colors">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    <span>Book Conference</span>
+                                </button>
+                                <button class="w-full flex items-center space-x-3 p-3 bg-muted text-muted-foreground rounded-md hover:bg-accent transition-colors">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span>Get Help</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Grades -->
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-semibold text-foreground">Recent Grades</h2>
+                                <button class="text-primary hover:text-primary/80 text-sm font-medium">View All</button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- @MAP: recentGrades.map(grade => ( -->
+                                <div class="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                                    <div class="flex-1">
+                                        <h3 class="font-medium text-foreground" data-mock="true">Mathematics</h3>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Unit Test 2</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-lg font-bold text-green-600" data-mock="true">A</span>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">Oct 18</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                                    <div class="flex-1">
+                                        <h3 class="font-medium text-foreground" data-mock="true">Physics</h3>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Lab Report</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-lg font-bold text-blue-600" data-mock="true">B+</span>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">Oct 16</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                                    <div class="flex-1">
+                                        <h3 class="font-medium text-foreground" data-mock="true">English</h3>
+                                        <p class="text-sm text-muted-foreground" data-mock="true">Essay Assignment</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-lg font-bold text-green-600" data-mock="true">A-</span>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">Oct 14</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Progress Tracker -->
+                        <div class="bg-card p-6 rounded-lg shadow-sm border border-border">
+                            <h2 class="text-xl font-semibold text-foreground mb-4">Academic Progress</h2>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-foreground" data-mock="true">Mathematics</span>
+                                        <span class="text-sm text-muted-foreground" data-mock="true">92%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-green-500 h-2 rounded-full w-[92%]"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-foreground" data-mock="true">Physics</span>
+                                        <span class="text-sm text-muted-foreground" data-mock="true">87%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full w-[87%]"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-foreground" data-mock="true">Chemistry</span>
+                                        <span class="text-sm text-muted-foreground" data-mock="true">89%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-purple-500 h-2 rounded-full w-[89%]"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-sm font-medium text-foreground" data-mock="true">English</span>
+                                        <span class="text-sm text-muted-foreground" data-mock="true">94%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-yellow-500 h-2 rounded-full w-[94%]"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="w-full mt-4 p-2 text-sm text-primary hover:text-primary/80 font-medium border border-border rounded-md hover:bg-accent transition-colors">
+                                View Detailed Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- @END_COMPONENT: Main Content Area -->
+    </div>
+
+    <!-- Mobile Navigation (Hidden by default) -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border">
+        <div class="grid grid-cols-5 py-2">
+            <button class="flex flex-col items-center py-2 text-primary">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs mt-1">Home</span>
+            </button>
+            <button class="flex flex-col items-center py-2 text-muted-foreground">
+                <i class="fas fa-calendar-check text-lg"></i>
+                <span class="text-xs mt-1">Attendance</span>
+            </button>
+            <button class="flex flex-col items-center py-2 text-muted-foreground">
+                <i class="fas fa-chart-line text-lg"></i>
+                <span class="text-xs mt-1">Grades</span>
+            </button>
+            <button class="flex flex-col items-center py-2 text-muted-foreground">
+                <i class="fas fa-bullhorn text-lg"></i>
+                <span class="text-xs mt-1">News</span>
+            </button>
+            <button class="flex flex-col items-center py-2 text-muted-foreground">
+                <i class="fas fa-user text-lg"></i>
+                <span class="text-xs mt-1">Profile</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // IIFE to scope variables and avoid global namespace pollution
+        (function() {
+            // TODO: Implement session-based authentication with JWT tokens
+            // TODO: Connect to Supabase PostgreSQL database
+            // TODO: Implement role-based access control
+            // TODO: Add real-time data updates for announcements and grades
+            // TODO: Integrate n8n webhook for automated notifications
+            // TODO: Implement mobile-responsive navigation toggle
+            // TODO: Add dark mode theme switching
+            // TODO: Implement attendance tracking functionality
+            // TODO: Add exam schedule management
+            // TODO: Implement marks and progress tracking
+
+            // Mock interactive elements for demonstration
+            const roleSelector = document.querySelector('select[data-mock="true"]');
+            if (roleSelector) {
+                roleSelector.addEventListener('change', function() {
+                    // TODO: Switch dashboard view based on selected role
+                    console.log('Role changed to:', this.value);
+                });
+            }
+
+            // Mock notification bell
+            const notificationBell = document.querySelector('.fa-bell').closest('button');
+            if (notificationBell) {
+                notificationBell.addEventListener('click', function() {
+                    // TODO: Show notifications dropdown
+                    console.log('Show notifications panel');
+                });
+            }
+
+            // Mock quick action buttons
+            const quickActionButtons = document.querySelectorAll('.bg-primary, .bg-secondary');
+            quickActionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // TODO: Implement respective functionality
+                    console.log('Quick action clicked:', this.textContent.trim());
+                });
+            });
+
+            // Mock calendar navigation
+            const calendarNavButtons = document.querySelectorAll('.fa-chevron-left, .fa-chevron-right');
+            calendarNavButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // TODO: Navigate calendar weeks
+                    console.log('Calendar navigation clicked');
+                });
+            });
+
+            // Mock mobile navigation
+            const mobileNavButtons = document.querySelectorAll('.lg\\:hidden button');
+            mobileNavButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // TODO: Handle mobile navigation
+                    console.log('Mobile nav clicked:', this.textContent.trim());
+                });
+            });
+
+            console.log('EduManage School Management System initialized');
+        })();
+    </script>
+</body>
+</html>

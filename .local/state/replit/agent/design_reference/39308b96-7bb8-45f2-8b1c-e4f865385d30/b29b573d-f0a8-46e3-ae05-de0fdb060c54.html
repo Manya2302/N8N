@@ -1,0 +1,1112 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduManager Pro - School Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                    colors: {
+                        background: "var(--background)",
+                        foreground: "var(--foreground)",
+                        card: {
+                            DEFAULT: "var(--card)",
+                            foreground: "var(--card-foreground)",
+                        },
+                        popover: {
+                            DEFAULT: "var(--popover)",
+                            foreground: "var(--popover-foreground)",
+                        },
+                        primary: {
+                            DEFAULT: "var(--primary)",
+                            foreground: "var(--primary-foreground)",
+                        },
+                        secondary: {
+                            DEFAULT: "var(--secondary)",
+                            foreground: "var(--secondary-foreground)",
+                        },
+                        muted: {
+                            DEFAULT: "var(--muted)",
+                            foreground: "var(--muted-foreground)",
+                        },
+                        accent: {
+                            DEFAULT: "var(--accent)",
+                            foreground: "var(--accent-foreground)",
+                        },
+                        destructive: {
+                            DEFAULT: "var(--destructive)",
+                            foreground: "var(--destructive-foreground)",
+                        },
+                        border: "var(--border)",
+                        input: "var(--input)",
+                        ring: "var(--ring)",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "system-ui", "sans-serif"],
+                    }
+                },
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --radius: 8px;
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(214 78% 35%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(158 64% 39%);
+            --secondary-foreground: hsl(210 40% 98%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(20 91% 48%);
+            --accent-foreground: hsl(210 40% 98%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(214 78% 35%);
+        }
+        
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .dashboard-card {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .nav-item:hover {
+            background: var(--muted);
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- @COMPONENT: Sidebar -->
+        <aside id="sidebar" class="sidebar-transition bg-card border-r border-border w-64 lg:w-72 fixed lg:static h-full z-30 transform -translate-x-full lg:translate-x-0">
+            <div class="flex flex-col h-full">
+                <!-- Logo & Role Switcher -->
+                <div class="p-6 border-b border-border">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-graduation-cap text-primary-foreground text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-foreground">EduManager</h1>
+                            <p class="text-sm text-muted-foreground">Pro</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Role Switcher -->
+                    <div class="space-y-2">
+                        <button id="teacherView" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium active">
+                            <i class="fas fa-chalkboard-teacher w-5 h-5"></i>
+                            <span>Teacher Dashboard</span>
+                        </button>
+                        <button id="adminView" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-user-shield w-5 h-5"></i>
+                            <span>Admin Dashboard</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                    <!-- Teacher Navigation -->
+                    <div id="teacherNav">
+                        <div class="mb-4">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Classroom</p>
+                        </div>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-calendar-check w-5 h-5"></i>
+                            <span>Attendance</span>
+                            <span class="ml-auto bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full">12 New</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-chart-line w-5 h-5"></i>
+                            <span>Marks & Grades</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-users w-5 h-5"></i>
+                            <span>My Students</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-tasks w-5 h-5"></i>
+                            <span>Assignments</span>
+                        </a>
+                        
+                        <div class="mt-6 mb-4">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Schedule</p>
+                        </div>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-calendar w-5 h-5"></i>
+                            <span>Time Table</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-clock w-5 h-5"></i>
+                            <span>Exam Schedule</span>
+                        </a>
+                        
+                        <div class="mt-6 mb-4">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Communication</p>
+                        </div>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-bullhorn w-5 h-5"></i>
+                            <span>Announcements</span>
+                            <span class="ml-auto bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full">3</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-comments w-5 h-5"></i>
+                            <span>Messages</span>
+                        </a>
+                    </div>
+
+                    <!-- Admin Navigation (Hidden by default) -->
+                    <div id="adminNav" class="hidden">
+                        <div class="mb-4">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Management</p>
+                        </div>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-tachometer-alt w-5 h-5"></i>
+                            <span>Overview</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-user-friends w-5 h-5"></i>
+                            <span>Teachers</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-user-graduate w-5 h-5"></i>
+                            <span>Students</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-building w-5 h-5"></i>
+                            <span>Classes</span>
+                        </a>
+                        
+                        <div class="mt-6 mb-4">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Operations</p>
+                        </div>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-credit-card w-5 h-5"></i>
+                            <span>Fee Management</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-bus w-5 h-5"></i>
+                            <span>Transport</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-book-open w-5 h-5"></i>
+                            <span>Digital Library</span>
+                        </a>
+                        
+                        <div class="mt-6 mb-4">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">Analytics</p>
+                        </div>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-chart-bar w-5 h-5"></i>
+                            <span>Reports</span>
+                        </a>
+                        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-cogs w-5 h-5"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- User Profile -->
+                <div class="p-4 border-t border-border">
+                    <div class="flex items-center gap-3">
+                        <!-- Professional teacher portrait with glasses and friendly smile -->
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="User Profile" class="w-10 h-10 rounded-full object-cover" />
+                        <div class="flex-1">
+                            <p class="text-sm font-medium" data-bind="user.name">Sarah Johnson</p>
+                            <p class="text-xs text-muted-foreground" data-bind="user.role">Mathematics Teacher</p>
+                        </div>
+                        <button class="p-2 rounded-md hover:bg-muted">
+                            <i class="fas fa-sign-out-alt text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden lg:ml-0">
+            <!-- @COMPONENT: Header -->
+            <header class="bg-card border-b border-border px-4 lg:px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <button id="sidebarToggle" class="lg:hidden p-2 rounded-md hover:bg-muted">
+                            <i class="fas fa-bars text-foreground"></i>
+                        </button>
+                        <div>
+                            <h2 id="pageTitle" class="text-2xl font-bold text-foreground">Teacher Dashboard</h2>
+                            <p class="text-sm text-muted-foreground">Manage your classes and students</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <!-- Quick Actions -->
+                        <button class="hidden md:flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">
+                            <i class="fas fa-plus w-4 h-4"></i>
+                            <span>Quick Actions</span>
+                        </button>
+                        
+                        <!-- Notifications -->
+                        <button class="relative p-2 rounded-md hover:bg-muted">
+                            <i class="fas fa-bell text-muted-foreground"></i>
+                            <span class="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">7</span>
+                        </button>
+                        
+                        <!-- Messages -->
+                        <button class="relative p-2 rounded-md hover:bg-muted">
+                            <i class="fas fa-envelope text-muted-foreground"></i>
+                            <span class="absolute -top-1 -right-1 bg-secondary text-secondary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- @COMPONENT: MainContent -->
+            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+                <!-- Teacher Dashboard Content -->
+                <div id="teacherContent">
+                    <!-- Stats Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- @MAP: statsCards.map(card => ( -->
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Total Students</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="stats.totalStudents">142</p>
+                                    <p class="text-sm text-secondary flex items-center gap-1 mt-1">
+                                        <i class="fas fa-arrow-up text-xs"></i>
+                                        <span>+12% from last month</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-user-graduate text-primary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Present Today</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="stats.presentToday">128</p>
+                                    <p class="text-sm text-secondary flex items-center gap-1 mt-1">
+                                        <i class="fas fa-check text-xs"></i>
+                                        <span>90.1% attendance</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-secondary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Avg. Grade</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="stats.avgGrade">B+</p>
+                                    <p class="text-sm text-accent flex items-center gap-1 mt-1">
+                                        <i class="fas fa-star text-xs"></i>
+                                        <span>85.6 average</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-accent text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Pending Tasks</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="stats.pendingTasks">7</p>
+                                    <p class="text-sm text-muted-foreground mt-1">
+                                        <span>Assignments to grade</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-tasks text-destructive text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Today's Schedule -->
+                        <div class="lg:col-span-2">
+                            <div class="bg-card rounded-lg border border-border p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-foreground">Today's Schedule</h3>
+                                    <button class="text-sm text-primary hover:text-primary/80">View Full Schedule</button>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <!-- @MAP: todaySchedule.map(class => ( -->
+                                    <div class="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                                        <div class="w-16 text-center">
+                                            <p class="text-lg font-bold text-foreground" data-bind="class.time">9:00</p>
+                                            <p class="text-xs text-muted-foreground">AM</p>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="font-medium text-foreground" data-bind="class.subject">Mathematics - Algebra II</h4>
+                                            <p class="text-sm text-muted-foreground" data-bind="class.class">Grade 10-A • Room 204</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
+                                                <i class="fas fa-clock w-3 h-3 mr-1"></i>
+                                                45 min
+                                            </span>
+                                            <button class="p-2 rounded-md hover:bg-muted">
+                                                <i class="fas fa-video text-muted-foreground"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-4 p-4 bg-primary/5 rounded-lg border-l-4 border-primary">
+                                        <div class="w-16 text-center">
+                                            <p class="text-lg font-bold text-primary" data-bind="class.time">10:30</p>
+                                            <p class="text-xs text-muted-foreground">AM</p>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="font-medium text-foreground" data-bind="class.subject">Mathematics - Calculus</h4>
+                                            <p class="text-sm text-muted-foreground" data-bind="class.class">Grade 12-B • Room 204</p>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground mt-1">
+                                                Current Class
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
+                                                <i class="fas fa-clock w-3 h-3 mr-1"></i>
+                                                45 min
+                                            </span>
+                                            <button class="p-2 rounded-md hover:bg-muted">
+                                                <i class="fas fa-video text-primary"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                                        <div class="w-16 text-center">
+                                            <p class="text-lg font-bold text-foreground" data-bind="class.time">1:00</p>
+                                            <p class="text-xs text-muted-foreground">PM</p>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="font-medium text-foreground" data-bind="class.subject">Mathematics - Statistics</h4>
+                                            <p class="text-sm text-muted-foreground" data-bind="class.class">Grade 11-C • Room 204</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/10 text-secondary">
+                                                <i class="fas fa-clock w-3 h-3 mr-1"></i>
+                                                45 min
+                                            </span>
+                                            <button class="p-2 rounded-md hover:bg-muted">
+                                                <i class="fas fa-video text-muted-foreground"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions & Announcements -->
+                        <div class="space-y-6">
+                            <!-- Quick Actions -->
+                            <div class="bg-card rounded-lg border border-border p-6">
+                                <h3 class="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+                                <div class="space-y-3">
+                                    <button class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted transition-colors">
+                                        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-user-plus text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">Mark Attendance</p>
+                                            <p class="text-sm text-muted-foreground">Record today's attendance</p>
+                                        </div>
+                                    </button>
+                                    
+                                    <button class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted transition-colors">
+                                        <div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-edit text-secondary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">Add Grades</p>
+                                            <p class="text-sm text-muted-foreground">Enter exam marks</p>
+                                        </div>
+                                    </button>
+                                    
+                                    <button class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted transition-colors">
+                                        <div class="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-bullhorn text-accent"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">Send Notice</p>
+                                            <p class="text-sm text-muted-foreground">Create announcement</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Recent Announcements -->
+                            <div class="bg-card rounded-lg border border-border p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-foreground">Recent Announcements</h3>
+                                    <button class="text-sm text-primary hover:text-primary/80">View All</button>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <!-- @MAP: announcements.map(announcement => ( -->
+                                    <div class="p-3 bg-muted/50 rounded-lg">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                                            <div class="flex-1">
+                                                <h4 class="font-medium text-foreground text-sm" data-bind="announcement.title">Parent-Teacher Conference</h4>
+                                                <p class="text-xs text-muted-foreground mt-1" data-bind="announcement.content">Scheduled for next Friday. Please confirm your availability...</p>
+                                                <p class="text-xs text-muted-foreground mt-2" data-bind="announcement.time">2 hours ago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 bg-muted/50 rounded-lg">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-2 h-2 bg-secondary rounded-full mt-2 flex-shrink-0"></div>
+                                            <div class="flex-1">
+                                                <h4 class="font-medium text-foreground text-sm" data-bind="announcement.title">Holiday Notice</h4>
+                                                <p class="text-xs text-muted-foreground mt-1" data-bind="announcement.content">School will be closed on Monday for maintenance...</p>
+                                                <p class="text-xs text-muted-foreground mt-2" data-bind="announcement.time">5 hours ago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 bg-muted/50 rounded-lg">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
+                                            <div class="flex-1">
+                                                <h4 class="font-medium text-foreground text-sm" data-bind="announcement.title">Exam Schedule Update</h4>
+                                                <p class="text-xs text-muted-foreground mt-1" data-bind="announcement.content">Final exams have been rescheduled. Check the new dates...</p>
+                                                <p class="text-xs text-muted-foreground mt-2" data-bind="announcement.time">1 day ago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity & Student Progress -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                        <!-- Student Progress Overview -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold text-foreground">Student Progress Overview</h3>
+                                <select class="text-sm bg-background border border-border rounded-md px-3 py-1">
+                                    <option>Grade 10-A</option>
+                                    <option>Grade 11-C</option>
+                                    <option>Grade 12-B</option>
+                                </select>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- @MAP: studentProgress.map(student => ( -->
+                                <div class="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Young student portrait with backpack -->
+                                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Student" class="w-10 h-10 rounded-full object-cover" />
+                                        <div>
+                                            <p class="font-medium text-foreground text-sm" data-bind="student.name">Emma Wilson</p>
+                                            <p class="text-xs text-muted-foreground" data-bind="student.status">Excellent Progress</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-bold text-foreground" data-bind="student.grade">94%</p>
+                                        <div class="flex items-center gap-1 mt-1">
+                                            <div class="w-16 bg-muted rounded-full h-1">
+                                                <div class="bg-secondary h-1 rounded-full" style="width: 94%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Student with notebook studying -->
+                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Student" class="w-10 h-10 rounded-full object-cover" />
+                                        <div>
+                                            <p class="font-medium text-foreground text-sm" data-bind="student.name">James Chen</p>
+                                            <p class="text-xs text-muted-foreground" data-bind="student.status">Good Progress</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-bold text-foreground" data-bind="student.grade">87%</p>
+                                        <div class="flex items-center gap-1 mt-1">
+                                            <div class="w-16 bg-muted rounded-full h-1">
+                                                <div class="bg-secondary h-1 rounded-full" style="width: 87%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Student with headphones in classroom -->
+                                        <img src="https://pixabay.com/get/gd1781919abf9ce63b3bd34af11d7b657095a185072843ef580724f947a5dd1b0c86f2e9d1548ddf9d6bb8e688aa07fdb26a9f0fd4e2616c0c0976f582447f55d_1280.jpg" alt="Student" class="w-10 h-10 rounded-full object-cover" />
+                                        <div>
+                                            <p class="font-medium text-foreground text-sm" data-bind="student.name">Sofia Rodriguez</p>
+                                            <p class="text-xs text-accent" data-bind="student.status">Needs Attention</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-bold text-foreground" data-bind="student.grade">72%</p>
+                                        <div class="flex items-center gap-1 mt-1">
+                                            <div class="w-16 bg-muted rounded-full h-1">
+                                                <div class="bg-accent h-1 rounded-full" style="width: 72%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Deadlines -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold text-foreground">Upcoming Deadlines</h3>
+                                <button class="text-sm text-primary hover:text-primary/80">View Calendar</button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- @MAP: upcomingDeadlines.map(deadline => ( -->
+                                <div class="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                                    <div class="w-12 h-12 bg-destructive/10 rounded-lg flex flex-col items-center justify-center">
+                                        <p class="text-xs text-destructive font-bold" data-bind="deadline.day">15</p>
+                                        <p class="text-xs text-destructive" data-bind="deadline.month">DEC</p>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-foreground text-sm" data-bind="deadline.title">Grade 10-A Final Exams</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="deadline.description">Mathematics final exam papers due</p>
+                                    </div>
+                                    <span class="text-xs bg-destructive/10 text-destructive px-2 py-1 rounded-full">
+                                        2 days
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                                    <div class="w-12 h-12 bg-accent/10 rounded-lg flex flex-col items-center justify-center">
+                                        <p class="text-xs text-accent font-bold" data-bind="deadline.day">18</p>
+                                        <p class="text-xs text-accent" data-bind="deadline.month">DEC</p>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-foreground text-sm" data-bind="deadline.title">Parent Conference Prep</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="deadline.description">Prepare progress reports for meetings</p>
+                                    </div>
+                                    <span class="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
+                                        5 days
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                                    <div class="w-12 h-12 bg-secondary/10 rounded-lg flex flex-col items-center justify-center">
+                                        <p class="text-xs text-secondary font-bold" data-bind="deadline.day">22</p>
+                                        <p class="text-xs text-secondary" data-bind="deadline.month">DEC</p>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-foreground text-sm" data-bind="deadline.title">Holiday Break Planning</p>
+                                        <p class="text-xs text-muted-foreground" data-bind="deadline.description">Submit next semester curriculum plan</p>
+                                    </div>
+                                    <span class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
+                                        9 days
+                                    </span>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard Content (Hidden by default) -->
+                <div id="adminContent" class="hidden">
+                    <!-- Admin Stats Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Total Students</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="adminStats.totalStudents">2,847</p>
+                                    <p class="text-sm text-secondary flex items-center gap-1 mt-1">
+                                        <i class="fas fa-arrow-up text-xs"></i>
+                                        <span>+5.2% this semester</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-user-graduate text-primary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Teaching Staff</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="adminStats.teachers">156</p>
+                                    <p class="text-sm text-secondary flex items-center gap-1 mt-1">
+                                        <i class="fas fa-check text-xs"></i>
+                                        <span>8 new hires</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chalkboard-teacher text-secondary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Revenue (Monthly)</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="adminStats.revenue">$487K</p>
+                                    <p class="text-sm text-accent flex items-center gap-1 mt-1">
+                                        <i class="fas fa-chart-line text-xs"></i>
+                                        <span>+12% from last month</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-accent text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card bg-card rounded-lg border border-border p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted-foreground">Attendance Rate</p>
+                                    <p class="text-3xl font-bold text-foreground" data-bind="adminStats.attendanceRate">94.2%</p>
+                                    <p class="text-sm text-secondary flex items-center gap-1 mt-1">
+                                        <i class="fas fa-arrow-up text-xs"></i>
+                                        <span>Above target</span>
+                                    </p>
+                                </div>
+                                <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-secondary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Main Content Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- School Performance Analytics -->
+                        <div class="lg:col-span-2">
+                            <div class="bg-card rounded-lg border border-border p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-foreground">School Performance Analytics</h3>
+                                    <div class="flex items-center gap-2">
+                                        <select class="text-sm bg-background border border-border rounded-md px-3 py-1">
+                                            <option>This Month</option>
+                                            <option>Last 3 Months</option>
+                                            <option>This Year</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Analytics Chart Placeholder -->
+                                <!-- @FUNCTIONALITY: This should implement Chart.js or similar for performance analytics -->
+                                <div class="h-64 bg-muted/30 rounded-lg flex items-center justify-center mb-6">
+                                    <div class="text-center">
+                                        <i class="fas fa-chart-line text-4xl text-muted-foreground mb-2"></i>
+                                        <p class="text-muted-foreground">Performance Analytics Chart</p>
+                                        <p class="text-sm text-muted-foreground">Student grades, attendance & engagement metrics</p>
+                                    </div>
+                                </div>
+
+                                <!-- Key Metrics -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="text-center p-4 bg-muted/50 rounded-lg">
+                                        <p class="text-2xl font-bold text-foreground">87.6%</p>
+                                        <p class="text-sm text-muted-foreground">Avg Grade</p>
+                                    </div>
+                                    <div class="text-center p-4 bg-muted/50 rounded-lg">
+                                        <p class="text-2xl font-bold text-foreground">94.2%</p>
+                                        <p class="text-sm text-muted-foreground">Attendance</p>
+                                    </div>
+                                    <div class="text-center p-4 bg-muted/50 rounded-lg">
+                                        <p class="text-2xl font-bold text-foreground">96.8%</p>
+                                        <p class="text-sm text-muted-foreground">Satisfaction</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Management -->
+                        <div class="space-y-6">
+                            <!-- Recent Activities -->
+                            <div class="bg-card rounded-lg border border-border p-6">
+                                <h3 class="text-lg font-semibold text-foreground mb-4">Recent Activities</h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                                        <div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-foreground">New Teacher Registration</p>
+                                            <p class="text-xs text-muted-foreground">Dr. Maria Garcia joined Mathematics dept.</p>
+                                            <p class="text-xs text-muted-foreground mt-1">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                                        <div class="w-2 h-2 bg-secondary rounded-full mt-2 flex-shrink-0"></div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-foreground">Fee Collection Update</p>
+                                            <p class="text-xs text-muted-foreground">Monthly collection: 95% completed</p>
+                                            <p class="text-xs text-muted-foreground mt-1">4 hours ago</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                                        <div class="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-foreground">System Maintenance</p>
+                                            <p class="text-xs text-muted-foreground">Database backup completed successfully</p>
+                                            <p class="text-xs text-muted-foreground mt-1">6 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Admin Actions -->
+                            <div class="bg-card rounded-lg border border-border p-6">
+                                <h3 class="text-lg font-semibold text-foreground mb-4">Admin Actions</h3>
+                                <div class="space-y-3">
+                                    <button class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted transition-colors">
+                                        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-user-plus text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">Add New Teacher</p>
+                                            <p class="text-sm text-muted-foreground">Register staff member</p>
+                                        </div>
+                                    </button>
+                                    
+                                    <button class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted transition-colors">
+                                        <div class="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-cog text-secondary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">System Settings</p>
+                                            <p class="text-sm text-muted-foreground">Configure school policies</p>
+                                        </div>
+                                    </button>
+                                    
+                                    <button class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-muted transition-colors">
+                                        <div class="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-file-export text-accent"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">Generate Reports</p>
+                                            <p class="text-sm text-muted-foreground">Export analytics data</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Management Table -->
+                    <div class="bg-card rounded-lg border border-border p-6 mt-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-foreground">Teacher Management</h3>
+                            <div class="flex items-center gap-3">
+                                <div class="relative">
+                                    <input type="text" placeholder="Search teachers..." class="pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+                                </div>
+                                <button class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 text-sm">
+                                    <i class="fas fa-plus mr-2"></i>Add Teacher
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-border">
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Teacher</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Subject</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Classes</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Performance</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                                        <th class="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- @MAP: teachers.map(teacher => ( -->
+                                    <tr class="border-b border-border hover:bg-muted/50">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <!-- Professional female teacher with friendly smile -->
+                                                <img src="https://pixabay.com/get/g54c038a2b018f8afdd3056548832b472258bf8d0a8f289608b971d76ec404100ad6bca5215cd3fa48a5f9a55e35b74b0569c530dc028d0361be4d3e0418836e6_1280.jpg" alt="Teacher" class="w-10 h-10 rounded-full object-cover" />
+                                                <div>
+                                                    <p class="font-medium text-foreground" data-bind="teacher.name">Sarah Johnson</p>
+                                                    <p class="text-sm text-muted-foreground" data-bind="teacher.email">sarah.j@school.edu</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="text-sm text-foreground" data-bind="teacher.subject">Mathematics</p>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="text-sm text-foreground" data-bind="teacher.classes">5 Classes</p>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-12 bg-muted rounded-full h-2">
+                                                    <div class="bg-secondary h-2 rounded-full" style="width: 92%"></div>
+                                                </div>
+                                                <span class="text-sm text-foreground">92%</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/10 text-secondary">Active</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-eye text-muted-foreground"></i>
+                                                </button>
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-edit text-muted-foreground"></i>
+                                                </button>
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-ellipsis-v text-muted-foreground"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="border-b border-border hover:bg-muted/50">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <!-- Male teacher with glasses in classroom setting -->
+                                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Teacher" class="w-10 h-10 rounded-full object-cover" />
+                                                <div>
+                                                    <p class="font-medium text-foreground" data-bind="teacher.name">Michael Chen</p>
+                                                    <p class="text-sm text-muted-foreground" data-bind="teacher.email">m.chen@school.edu</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="text-sm text-foreground" data-bind="teacher.subject">Physics</p>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="text-sm text-foreground" data-bind="teacher.classes">3 Classes</p>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-12 bg-muted rounded-full h-2">
+                                                    <div class="bg-secondary h-2 rounded-full" style="width: 88%"></div>
+                                                </div>
+                                                <span class="text-sm text-foreground">88%</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/10 text-secondary">Active</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-eye text-muted-foreground"></i>
+                                                </button>
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-edit text-muted-foreground"></i>
+                                                </button>
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-ellipsis-v text-muted-foreground"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="border-b border-border hover:bg-muted/50">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <!-- Professional woman teacher with books -->
+                                                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Teacher" class="w-10 h-10 rounded-full object-cover" />
+                                                <div>
+                                                    <p class="font-medium text-foreground" data-bind="teacher.name">Dr. Maria Garcia</p>
+                                                    <p class="text-sm text-muted-foreground" data-bind="teacher.email">m.garcia@school.edu</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="text-sm text-foreground" data-bind="teacher.subject">English Literature</p>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <p class="text-sm text-foreground" data-bind="teacher.classes">4 Classes</p>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-12 bg-muted rounded-full h-2">
+                                                    <div class="bg-secondary h-2 rounded-full" style="width: 95%"></div>
+                                                </div>
+                                                <span class="text-sm text-foreground">95%</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">New</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-2">
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-eye text-muted-foreground"></i>
+                                                </button>
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-edit text-muted-foreground"></i>
+                                                </button>
+                                                <button class="p-2 rounded-md hover:bg-muted">
+                                                    <i class="fas fa-ellipsis-v text-muted-foreground"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: MainContent -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden hidden"></div>
+
+    <script>
+        // TODO: Implement session-based authentication, role management, and database integration
+        (function() {
+            'use strict';
+            
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('-translate-x-full');
+                sidebarOverlay.classList.toggle('hidden');
+            });
+            
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            });
+            
+            // Dashboard view switcher
+            const teacherViewBtn = document.getElementById('teacherView');
+            const adminViewBtn = document.getElementById('adminView');
+            const teacherContent = document.getElementById('teacherContent');
+            const adminContent = document.getElementById('adminContent');
+            const teacherNav = document.getElementById('teacherNav');
+            const adminNav = document.getElementById('adminNav');
+            const pageTitle = document.getElementById('pageTitle');
+            
+            teacherViewBtn.addEventListener('click', function() {
+                // Switch to teacher view
+                teacherViewBtn.classList.add('active');
+                adminViewBtn.classList.remove('active');
+                teacherContent.classList.remove('hidden');
+                adminContent.classList.add('hidden');
+                teacherNav.classList.remove('hidden');
+                adminNav.classList.add('hidden');
+                pageTitle.textContent = 'Teacher Dashboard';
+                
+                // TODO: Load teacher-specific data from backend
+            });
+            
+            adminViewBtn.addEventListener('click', function() {
+                // Switch to admin view
+                adminViewBtn.classList.add('active');
+                teacherViewBtn.classList.remove('active');
+                adminContent.classList.remove('hidden');
+                teacherContent.classList.add('hidden');
+                adminNav.classList.remove('hidden');
+                teacherNav.classList.add('hidden');
+                pageTitle.textContent = 'Admin Dashboard';
+                
+                // TODO: Load admin-specific data from backend
+            });
+            
+            // Navigation active state management
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (this.tagName === 'BUTTON') {
+                        return; // Skip role switcher buttons
+                    }
+                    
+                    e.preventDefault();
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // TODO: Load corresponding page content
+                });
+            });
+            
+            // TODO: Implement real-time notifications using WebSocket
+            // TODO: Implement data fetching from Supabase PostgreSQL
+            // TODO: Implement WhatsApp integration via AiSensy
+            // TODO: Implement Google Sheets integration for reports
+            // TODO: Implement session management and role-based access control
+            
+            console.log('EduManager Pro initialized');
+        })();
+    </script>
+</body>
+</html>
