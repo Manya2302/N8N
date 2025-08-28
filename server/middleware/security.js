@@ -46,6 +46,8 @@ export const generalLimiter = rateLimit({
 
 // Security headers
 export function securityHeaders() {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   return helmet({
     contentSecurityPolicy: {
       directives: {
@@ -53,8 +55,12 @@ export function securityHeaders() {
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "https:"],
-        scriptSrc: ["'self'"],
-        connectSrc: ["'self'"],
+        scriptSrc: isDevelopment 
+          ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"] 
+          : ["'self'"],
+        connectSrc: isDevelopment 
+          ? ["'self'", "ws:", "wss:"] 
+          : ["'self'"],
       },
     },
     hsts: {

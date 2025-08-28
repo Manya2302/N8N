@@ -4,6 +4,8 @@ import rateLimit from 'express-rate-limit';
 import { AuthService, generateCSRFToken } from './auth.js';
 
 export function setupSecurityMiddleware(app) {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   // Security headers
   app.use(helmet({
     contentSecurityPolicy: {
@@ -11,9 +13,13 @@ export function setupSecurityMiddleware(app) {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        scriptSrc: ["'self'"],
+        scriptSrc: isDevelopment 
+          ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"] 
+          : ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'"]
+        connectSrc: isDevelopment 
+          ? ["'self'", "ws:", "wss:"] 
+          : ["'self'"]
       }
     }
   }));
