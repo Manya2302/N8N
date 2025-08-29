@@ -32,12 +32,12 @@ export async function registerRoutes(app) {
   app.use(session({
     secret: process.env.SESSION_SECRET || 'your-super-secret-session-key',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true to ensure session creation
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'strict'
+      sameSite: 'lax' // Changed from strict to lax for better compatibility
     }
   }));
 
