@@ -11,7 +11,7 @@ import {
   assignments,
   announcements,
   refreshTokens,
-} from "@shared/schema.js";
+} from "../shared/schema.js";
 
 
 class PostgresStorage {
@@ -19,19 +19,28 @@ class PostgresStorage {
   db;
 
   constructor() {
-    this.client = new Client({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-    });
-    this.db = drizzle(this.client);
+    this.client = null;
+    this.db = null;
+    this.isConnected = false;
   }
 
   async connect() {
-    await this.client.connect();
+    if (!this.isConnected) {
+      this.client = new Client({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+      });
+      this.db = drizzle(this.client);
+      await this.client.connect();
+      this.isConnected = true;
+    }
   }
 
   async disconnect() {
-    await this.client.end();
+    if (this.client && this.isConnected) {
+      await this.client.end();
+      this.isConnected = false;
+    }
   }
 
   // User methods
