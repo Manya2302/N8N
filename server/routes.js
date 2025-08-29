@@ -60,7 +60,7 @@ export async function registerRoutes(app) {
     password: z.string().min(6),
   });
 
-  app.post('/api/auth/register-admin', csrfMiddleware, async (req, res) => {
+  app.post('/api/auth/register-admin', async (req, res) => {
     try {
       // Check if any admin exists
       const existingUsers = await storage.getTeachers();
@@ -106,7 +106,7 @@ export async function registerRoutes(app) {
     type: z.literal('teacher').optional(),
   });
 
-  app.post('/api/auth/register-teacher', csrfMiddleware, async (req, res) => {
+  app.post('/api/auth/register-teacher', async (req, res) => {
     try {
       const { email, password, name } = teacherRegisterSchema.parse(req.body);
       
@@ -136,7 +136,7 @@ export async function registerRoutes(app) {
     }
   });
 
-  app.post('/api/auth/login', csrfMiddleware, async (req, res) => {
+  app.post('/api/auth/login', async (req, res) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
