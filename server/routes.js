@@ -25,6 +25,11 @@ export async function registerRoutes(app) {
   // Connect to database
   await storage.connect();
 
+  // Trust proxy setting for rate limiting in production
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
+
   // Session configuration
   app.use(session({
     secret: process.env.SESSION_SECRET || 'your-super-secret-session-key',
