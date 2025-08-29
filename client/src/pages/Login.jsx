@@ -206,6 +206,20 @@ export default function Login() {
           </TabsContent>
         </Tabs>
 
+        {/* Teacher Registration Link */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground mb-2">
+            New teacher? Register for access
+          </p>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/register-teacher')}
+            className="text-sm"
+          >
+            Register as Teacher
+          </Button>
+        </div>
+
         {/* Features */}
         <div className="mt-8 text-center text-sm text-muted-foreground">
           <p>✓ Teacher & Student Management</p>

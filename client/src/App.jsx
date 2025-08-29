@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./lib/auth";
 import Login from "@/pages/Login";
+import TeacherRegister from "@/pages/TeacherRegister";
 import AdminDashboard from "@/pages/AdminDashboard";
 import TeacherDashboard from "@/pages/TeacherDashboard";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
+      <Route path="/register-teacher" component={TeacherRegister} />
       <Route path="/admin-dashboard">
         <ProtectedRoute allowedRoles={['admin']}>
           <AdminDashboard />

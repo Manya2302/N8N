@@ -95,6 +95,44 @@ export async function registerRoutes(app) {
     }
   });
 
+  // Teacher registration route
+  const teacherRegisterSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+    name: z.string().min(1),
+    type: z.literal('teacher').optional(),
+  });
+
+  app.post('/api/auth/register-teacher', csrfMiddleware, async (req, res) => {
+    try {
+      const { email, password, name } = teacherRegisterSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: 'User already exists' });
+      }
+
+      const passwordHash = await AuthService.hashPassword(password);
+      const user = await storage.createUser({
+        email,
+        passwordHash,
+        role: 'teacher', // Default type as teacher as requested
+        isActive: true,
+      });
+
+      await storage.createAuditLog(user.id, 'teacher_registered', { email, name }, req.ip);
+
+      res.status(201).json({ 
+        message: 'Teacher registered successfully',
+        user: { id: user.id, email: user.email, role: user.role }
+      });
+    } catch (error) {
+      console.error('Register teacher error:', error);
+      res.status(400).json({ error: error.message || 'Registration failed' });
+    }
+  });
+
   app.post('/api/auth/login', csrfMiddleware, async (req, res) => {
     try {
       const { email, password } = loginSchema.parse(req.body);

@@ -60,12 +60,22 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const registerTeacher = async (teacherData) => {
+    try {
+      await apiClient.post('/auth/register-teacher', teacherData);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     user,
     loading,
     login,
     logout,
     registerAdmin,
+    registerTeacher,
     checkAuth,
   };
 
