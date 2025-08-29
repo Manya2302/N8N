@@ -11,7 +11,7 @@ import {
   assignments,
   announcements,
   refreshTokens,
-} from "@shared/schema";
+} from "@shared/schema.js";
 
 
 class PostgresStorage {
