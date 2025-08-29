@@ -10,8 +10,8 @@ import {
   insertGradeSchema,
   insertAssignmentSchema,
   insertAnnouncementSchema 
-} from "@shared/schema";
-import { storage } from "./storage";
+} from "../shared/schema.js";
+import { storage } from "./storage.js";
 import { AuthService, generateCSRFToken } from "./auth.js";
 import { 
   setupSecurityMiddleware, 
