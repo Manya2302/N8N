@@ -41,7 +41,7 @@ export function setupSecurityMiddleware(app) {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: isDevelopment ? false : true, // Trust proxy in production
+    trustProxy: true, // Trust proxy in Replit environment
   });
 
   app.use('/api/', limiter);
@@ -53,7 +53,7 @@ export function setupSecurityMiddleware(app) {
     message: {
       error: 'Too many authentication attempts, please try again later.'
     },
-    trustProxy: isDevelopment ? false : true, // Trust proxy in production
+    trustProxy: true, // Trust proxy in Replit environment
   });
 
   app.use('/api/auth/', authLimiter);
