@@ -51,15 +51,7 @@ function useSidebar() {
   return context
 }
 
-const SidebarProvider = React.forwardRef(
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
-    defaultOpen?: boolean
-    open?: boolean
-    onOpenChange?: (open: boolean) => void
-  }
-  (
-    {
+const SidebarProvider = React.forwardRef(({
       defaultOpen = true,
       open: openProp,
       onOpenChange: setOpenProp,
@@ -67,9 +59,7 @@ const SidebarProvider = React.forwardRef(
       style,
       children,
       ...props
-    },
-    ref
-  ) => {
+    }, ref) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
 
@@ -159,24 +149,14 @@ const SidebarProvider = React.forwardRef(
 )
 SidebarProvider.displayName = "SidebarProvider"
 
-const Sidebar = React.forwardRef(
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
-    side?: "left" | "right"
-    variant?: "sidebar" | "floating" | "inset"
-    collapsible?: "offcanvas" | "icon" | "none"
-  }
-  (
-    {
+const Sidebar = React.forwardRef(({
       side = "left",
       variant = "sidebar",
       collapsible = "offcanvas",
       className,
       children,
       ...props
-    },
-    ref
-  ) => {
+    }, ref) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
     if (collapsible === "none") {
