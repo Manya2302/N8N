@@ -13,3 +13,5 @@
 [x] 13. Configure database to use Replit PostgreSQL instead of Supabase
 [x] 14. Push database schema to create all required tables
 [x] 15. Add test user accounts for login verification (admin@school.com and teacher@school.com, password: password123)
+[x] 16. Connect application to user's Supabase database using provided URL
+[x] 17. Verify database connection and existing user accounts (admin@gmail.com and teacher@gmail.com)
