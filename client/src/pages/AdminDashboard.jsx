@@ -18,7 +18,19 @@ import {
   Bus,
   BookOpen,
   Calendar,
-  BarChart3
+  BarChart3,
+  Plus,
+  Edit,
+  Trash2,
+  Download,
+  Upload,
+  Settings2,
+  Building,
+  CreditCard,
+  MapPin,
+  Clock,
+  UserCheck,
+  Target
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -114,12 +126,15 @@ export default function AdminDashboard() {
 
         {/* Main Admin Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
             <TabsTrigger value="teachers" data-testid="tab-teachers">Teachers</TabsTrigger>
-            <TabsTrigger value="students" data-testid="tab-students">Students</TabsTrigger>
+            <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="announcements" data-testid="tab-announcements">Announcements</TabsTrigger>
             <TabsTrigger value="finance" data-testid="tab-finance">Finance</TabsTrigger>
-            <TabsTrigger value="system" data-testid="tab-system">System</TabsTrigger>
+            <TabsTrigger value="transport" data-testid="tab-transport">Transport</TabsTrigger>
+            <TabsTrigger value="library" data-testid="tab-library">Library</TabsTrigger>
+            <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -251,50 +266,347 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="students" className="space-y-6">
-            <Card data-testid="card-students-management">
-              <CardHeader>
-                <CardTitle>Student Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {students ? (
-                  <StudentTable students={students} isAdmin={true} />
-                ) : (
-                  <p className="text-center text-muted-foreground py-8" data-testid="text-no-students">
-                    Loading students...
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card data-testid="card-student-analytics">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Student Performance Analytics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="text-sm font-medium">Overall Performance</span>
+                      <Badge variant="default">85% Average</Badge>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="text-sm font-medium">Attendance Rate</span>
+                      <Badge variant="secondary">92%</Badge>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                      <span className="text-sm font-medium">Assignment Completion</span>
+                      <Badge variant="outline">78%</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-attendance-trends">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCheck className="w-5 h-5" />
+                    Attendance Trends
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-primary">92%</div>
+                      <div className="text-sm text-muted-foreground">This Month</div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Monday</span>
+                        <span>95%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Tuesday</span>
+                        <span>89%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Wednesday</span>
+                        <span>91%</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
-          <TabsContent value="finance" className="space-y-6">
-            <Card data-testid="card-financial-overview">
+          <TabsContent value="announcements" className="space-y-6">
+            <Card data-testid="card-announcements-management">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Financial Overview
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="w-5 h-5" />
+                    Announcements Management
+                  </CardTitle>
+                  <Button data-testid="button-create-announcement">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Announcement
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {financialOverview.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`finance-item-${index}`}>
+                  {[
+                    { title: "School Holiday Notice", date: "March 15, 2024", type: "Holiday", audience: "All" },
+                    { title: "Parent-Teacher Meeting", date: "March 20, 2024", type: "Meeting", audience: "Parents" },
+                    { title: "Exam Schedule Update", date: "March 10, 2024", type: "Exam", audience: "Students" }
+                  ].map((announcement, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`announcement-${index}`}>
                       <div>
-                        <p className="font-medium">{item.category}</p>
-                        <p className="text-sm text-muted-foreground">{item.percentage}% collection rate</p>
+                        <p className="font-medium">{announcement.title}</p>
+                        <p className="text-sm text-muted-foreground">{announcement.date} • {announcement.audience}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-lg">{item.amount}</p>
-                        <Badge variant={item.status === 'collected' ? 'default' : 'outline'}>
-                          {item.status}
+                      <div className="flex gap-2">
+                        <Badge variant={announcement.type === 'Holiday' ? 'secondary' : 'default'}>
+                          {announcement.type}
                         </Badge>
+                        <Button variant="outline" size="sm" data-testid={`button-edit-announcement-${index}`}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="destructive" size="sm" data-testid={`button-delete-announcement-${index}`}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="finance" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card data-testid="card-financial-overview">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5" />
+                    Fee Collection Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {financialOverview.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`finance-item-${index}`}>
+                        <div>
+                          <p className="font-medium">{item.category}</p>
+                          <p className="text-sm text-muted-foreground">{item.percentage}% collection rate</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-lg">{item.amount}</p>
+                          <Badge variant={item.status === 'collected' ? 'default' : 'outline'}>
+                            {item.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-fee-management">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Fee Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button className="w-full" data-testid="button-generate-receipts">
+                      <Download className="w-4 h-4 mr-2" />
+                      Generate Receipts
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-payment-reminders">
+                      <Megaphone className="w-4 h-4 mr-2" />
+                      Send Payment Reminders
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-fee-structure">
+                      <Settings2 className="w-4 h-4 mr-2" />
+                      Manage Fee Structure
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="transport" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card data-testid="card-bus-routes">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bus className="w-5 h-5" />
+                    Bus Routes Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      { route: "Route A", driver: "John Smith", students: 25, status: "Active" },
+                      { route: "Route B", driver: "Emma Wilson", students: 30, status: "Active" },
+                      { route: "Route C", driver: "Mike Johnson", students: 22, status: "Maintenance" }
+                    ].map((route, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`route-${index}`}>
+                        <div>
+                          <p className="font-medium">{route.route}</p>
+                          <p className="text-sm text-muted-foreground">Driver: {route.driver}</p>
+                          <p className="text-sm text-muted-foreground">{route.students} students</p>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <Badge variant={route.status === 'Active' ? 'default' : 'destructive'}>
+                            {route.status}
+                          </Badge>
+                          <Button variant="outline" size="sm" data-testid={`button-edit-route-${index}`}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-transport-schedule">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Transport Schedule
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button className="w-full" data-testid="button-add-route">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add New Route
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-student-allocation">
+                      <Users className="w-4 h-4 mr-2" />
+                      Student Allocation
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-schedule-maintenance">
+                      <Settings2 className="w-4 h-4 mr-2" />
+                      Schedule Maintenance
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="library" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card data-testid="card-digital-library">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    Digital Library Management
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-primary">1,245</div>
+                        <div className="text-sm text-muted-foreground">Total Books</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-secondary">89</div>
+                        <div className="text-sm text-muted-foreground">Borrowed</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-accent">156</div>
+                        <div className="text-sm text-muted-foreground">E-books</div>
+                      </div>
+                    </div>
+                    <Button className="w-full" data-testid="button-upload-book">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload New Book
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-manage-categories">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Manage Categories
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-borrowing-activity">
+                <CardHeader>
+                  <CardTitle>Recent Borrowing Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[
+                      { student: "John Smith", book: "Mathematics Grade 10", date: "Today" },
+                      { student: "Emma Wilson", book: "Physics Concepts", date: "Yesterday" },
+                      { student: "Mike Johnson", book: "Chemistry Lab Manual", date: "2 days ago" }
+                    ].map((activity, index) => (
+                      <div key={index} className="flex justify-between items-center text-sm" data-testid={`library-activity-${index}`}>
+                        <div>
+                          <p className="font-medium">{activity.student}</p>
+                          <p className="text-muted-foreground">{activity.book}</p>
+                        </div>
+                        <span className="text-muted-foreground">{activity.date}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card data-testid="card-system-settings">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings2 className="w-5 h-5" />
+                    System Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-school-info">
+                      <Building className="w-4 h-4 mr-2" />
+                      School Information
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-user-roles">
+                      <Users className="w-4 h-4 mr-2" />
+                      User Roles & Permissions
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-academic-year">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Academic Year Settings
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start" data-testid="button-notifications">
+                      <Megaphone className="w-4 h-4 mr-2" />
+                      Notification Settings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-backup-security">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    Backup & Security
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button className="w-full" data-testid="button-create-backup">
+                      <Download className="w-4 h-4 mr-2" />
+                      Create System Backup
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-security-audit">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Security Audit
+                    </Button>
+                    <Button variant="outline" className="w-full" data-testid="button-access-logs">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      View Access Logs
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

@@ -122,10 +122,10 @@ export default function Sidebar() {
             </div>
           )}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleLogout}
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            className="w-full justify-start text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground transition-all duration-200"
             data-testid="button-logout"
           >
             <LogOut className="w-4 h-4 mr-3" />
