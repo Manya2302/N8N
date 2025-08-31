@@ -16,6 +16,10 @@ export default function Analytics() {
     queryFn: () => apiClient.get('/audit'),
   });
 
+  const { data: analytics } = useQuery({
+    queryKey: ['/api/analytics/overview'],
+  });
+
   // Mock analytics data (replace with real API calls)
   const analyticsData = {
     studentPerformance: [

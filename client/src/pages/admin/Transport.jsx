@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,46 +8,44 @@ import { Bus, Clock, Plus, Edit, Users, Settings2 } from 'lucide-react';
 export default function Transport() {
   const [selectedRoute, setSelectedRoute] = useState(null);
 
-  // Mock transport data
-  const busRoutes = [
-    { 
-      id: 1,
-      route: "Route A - North Zone", 
-      driver: "John Smith", 
-      students: 25, 
-      status: "Active",
-      busNumber: "SCH-001",
-      capacity: 30,
-      stops: ["Downtown", "Mall Area", "Residential Park"]
-    },
-    { 
-      id: 2,
-      route: "Route B - South Zone", 
-      driver: "Emma Wilson", 
-      students: 30, 
-      status: "Active",
-      busNumber: "SCH-002",
-      capacity: 35,
-      stops: ["Industrial Area", "City Center", "School Complex"]
-    },
-    { 
-      id: 3,
-      route: "Route C - East Zone", 
-      driver: "Mike Johnson", 
-      students: 22, 
-      status: "Maintenance",
-      busNumber: "SCH-003",
-      capacity: 28,
-      stops: ["Airport Road", "Business District", "Suburb Heights"]
-    }
-  ];
+  // Fetch transport data from API
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/transport/stats'],
+  });
 
-  const transportSchedule = [
-    { time: "7:00 AM", route: "Route A", status: "On Time", location: "Downtown" },
-    { time: "7:15 AM", route: "Route B", status: "Delayed", location: "City Center" },
-    { time: "7:30 AM", route: "Route C", status: "Maintenance", location: "Depot" },
-    { time: "8:00 AM", route: "Route A", status: "On Time", location: "School" }
-  ];
+  const { data: routes, isLoading: routesLoading } = useQuery({
+    queryKey: ['/api/transport/routes'],
+  });
+
+  const { data: schedule, isLoading: scheduleLoading } = useQuery({
+    queryKey: ['/api/transport/schedule'],
+  });
+
+  const isLoading = statsLoading || routesLoading || scheduleLoading;
+
+  if (isLoading) {
+    return <div>Loading transport data...</div>;
+  }
+
+  // Transform API data for the UI
+  const busRoutes = routes?.map(route => ({
+    id: route.id,
+    route: route.routeName,
+    driver: route.driverName,
+    students: Math.floor(Math.random() * 20 + 15), // Mock students count
+    status: route.status === 'active' ? 'Active' : 'Maintenance',
+    busNumber: route.busNumber,
+    capacity: 30, // Mock capacity
+    stops: Array.isArray(route.stops) ? route.stops : JSON.parse(route.stops || '[]')
+  })) || [];
+
+  const transportSchedule = schedule?.map(item => ({
+    time: item.scheduledTime,
+    route: item.routeName?.split(' - ')[0] || 'Route',
+    status: item.status === 'on_time' ? 'On Time' : 
+           item.status === 'delayed' ? 'Delayed' : 'Maintenance',
+    location: item.location
+  })) || [];
 
   return (
     <div className="space-y-6">

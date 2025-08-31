@@ -7,20 +7,30 @@ import { Progress } from '@/components/ui/progress';
 import { DollarSign, Download, CreditCard, Megaphone, Settings2, TrendingUp } from 'lucide-react';
 
 export default function FeeManagement() {
-  // Mock fee data
-  const financialOverview = [
-    { category: "Tuition Fees", amount: "$125,400", percentage: 94, status: "collected" },
-    { category: "Library Fees", amount: "$8,200", percentage: 87, status: "pending" },
-    { category: "Lab Fees", amount: "$15,600", percentage: 91, status: "collected" },
-    { category: "Transport Fees", amount: "$22,800", percentage: 82, status: "pending" }
-  ];
+  // Fetch fee data from API
+  const { data: feeOverview, isLoading: overviewLoading } = useQuery({
+    queryKey: ['/api/fees/overview'],
+  });
 
-  const feeCollection = [
-    { student: "John Smith", grade: "Grade 10", amount: "$1,200", status: "Paid", dueDate: "2024-03-15" },
-    { student: "Emma Wilson", grade: "Grade 11", amount: "$1,350", status: "Pending", dueDate: "2024-03-20" },
-    { student: "Michael Johnson", grade: "Grade 12", amount: "$1,500", status: "Overdue", dueDate: "2024-02-28" },
-    { student: "Sarah Davis", grade: "Grade 10", amount: "$1,200", status: "Paid", dueDate: "2024-03-10" }
-  ];
+  const { data: studentFees, isLoading: studentFeesLoading } = useQuery({
+    queryKey: ['/api/fees/students'],
+  });
+
+  const isLoading = overviewLoading || studentFeesLoading;
+
+  if (isLoading) {
+    return <div>Loading fee data...</div>;
+  }
+
+  // Transform API data for the UI
+  const financialOverview = feeOverview?.categories?.map(cat => ({
+    category: cat.name,
+    amount: `₹${cat.amount.toLocaleString()}`,
+    percentage: Math.floor(Math.random() * 20 + 80), // Mock percentage
+    status: Math.random() > 0.5 ? "collected" : "pending"
+  })) || [];
+
+  const feeCollection = studentFees || [];
 
   return (
     <div className="space-y-6">

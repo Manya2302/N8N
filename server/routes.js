@@ -510,6 +510,100 @@ export async function registerRoutes(app) {
     }
   });
 
+  // Fee Management routes
+  app.get('/api/fees/overview', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const overview = await storage.getFeeOverview();
+      res.json(overview);
+    } catch (error) {
+      console.error('Get fee overview error:', error);
+      res.status(500).json({ error: 'Failed to fetch fee overview' });
+    }
+  });
+
+  app.get('/api/fees/students', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const studentFees = await storage.getStudentFees();
+      res.json(studentFees);
+    } catch (error) {
+      console.error('Get student fees error:', error);
+      res.status(500).json({ error: 'Failed to fetch student fees' });
+    }
+  });
+
+  // Transport Management routes
+  app.get('/api/transport/stats', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const stats = await storage.getTransportStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Get transport stats error:', error);
+      res.status(500).json({ error: 'Failed to fetch transport stats' });
+    }
+  });
+
+  app.get('/api/transport/routes', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const routes = await storage.getTransportRoutes();
+      res.json(routes);
+    } catch (error) {
+      console.error('Get transport routes error:', error);
+      res.status(500).json({ error: 'Failed to fetch transport routes' });
+    }
+  });
+
+  app.get('/api/transport/schedule', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const schedule = await storage.getTransportSchedule();
+      res.json(schedule);
+    } catch (error) {
+      console.error('Get transport schedule error:', error);
+      res.status(500).json({ error: 'Failed to fetch transport schedule' });
+    }
+  });
+
+  app.get('/api/transport/drivers', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const drivers = await storage.getDrivers();
+      res.json(drivers);
+    } catch (error) {
+      console.error('Get drivers error:', error);
+      res.status(500).json({ error: 'Failed to fetch drivers' });
+    }
+  });
+
+  // Digital Library routes
+  app.get('/api/library/stats', authMiddleware(storage), async (req, res) => {
+    try {
+      const stats = await storage.getLibraryStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Get library stats error:', error);
+      res.status(500).json({ error: 'Failed to fetch library stats' });
+    }
+  });
+
+  app.get('/api/library/books', authMiddleware(storage), async (req, res) => {
+    try {
+      const books = await storage.getBooks();
+      res.json(books);
+    } catch (error) {
+      console.error('Get books error:', error);
+      res.status(500).json({ error: 'Failed to fetch books' });
+    }
+  });
+
+  // Analytics routes
+  app.get('/api/analytics/overview', authMiddleware(storage), roleMiddleware(['admin']), async (req, res) => {
+    try {
+      const analytics = await storage.getAnalyticsOverview();
+      res.json(analytics);
+    } catch (error) {
+      console.error('Get analytics error:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

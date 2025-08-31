@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,22 +8,35 @@ import { BookOpen, Upload, Plus, Search, Download, Users } from 'lucide-react';
 export default function DigitalLibrary() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Mock library data
-  const libraryStats = {
-    totalBooks: 1245,
-    borrowed: 89,
-    ebooks: 156,
-    audiobooks: 23,
-    categories: 12
-  };
+  // Fetch library data from API
+  const { data: libraryStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/library/stats'],
+  });
 
-  const bookCategories = [
-    { name: 'Mathematics', count: 142, color: 'bg-blue-500' },
-    { name: 'Science', count: 98, color: 'bg-green-500' },
-    { name: 'Literature', count: 156, color: 'bg-purple-500' },
-    { name: 'History', count: 89, color: 'bg-orange-500' },
-    { name: 'Technology', count: 67, color: 'bg-red-500' }
-  ];
+  const { data: books, isLoading: booksLoading } = useQuery({
+    queryKey: ['/api/library/books'],
+  });
+
+  const isLoading = statsLoading || booksLoading;
+
+  if (isLoading) {
+    return <div>Loading library data...</div>;
+  }
+
+  // Transform API data for the UI
+  const bookCategories = books?.reduce((categories, book) => {
+    const existing = categories.find(cat => cat.name === book.category);
+    if (existing) {
+      existing.count++;
+    } else {
+      categories.push({
+        name: book.category,
+        count: 1,
+        color: `bg-${['blue', 'green', 'purple', 'orange', 'red'][categories.length % 5]}-500`
+      });
+    }
+    return categories;
+  }, []) || [];
 
   const recentActivity = [
     { student: "John Smith", book: "Mathematics Grade 10", action: "borrowed", date: "Today" },
@@ -31,12 +45,12 @@ export default function DigitalLibrary() {
     { student: "Sarah Davis", book: "World History", action: "reserved", date: "3 days ago" }
   ];
 
-  const popularBooks = [
-    { title: "Advanced Mathematics", author: "Dr. Smith", borrowed: 15, rating: 4.8 },
-    { title: "Physics Fundamentals", author: "Prof. Johnson", borrowed: 12, rating: 4.6 },
-    { title: "Chemistry Basics", author: "Dr. Wilson", borrowed: 10, rating: 4.7 },
-    { title: "Programming Guide", author: "Tech Expert", borrowed: 8, rating: 4.9 }
-  ];
+  const popularBooks = books?.map(book => ({
+    title: book.title,
+    author: book.author,
+    borrowed: book.totalCopies - book.availableCopies,
+    rating: (Math.random() * 1 + 4).toFixed(1) // Mock rating between 4.0-5.0
+  }))?.slice(0, 4) || [];
 
   return (
     <div className="space-y-6">

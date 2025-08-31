@@ -11,6 +11,17 @@ import {
   assignments,
   announcements,
   refreshTokens,
+  feeCategories,
+  studentFees,
+  buses,
+  drivers,
+  routes,
+  studentTransport,
+  transportSchedule,
+  books,
+  bookBorrowings,
+  schoolStats,
+  teacherProfiles,
 } from "@shared/schema";
 
 
@@ -344,6 +355,123 @@ class PostgresStorage {
         systemHealth: "Good",
       };
     }
+  }
+
+  // Fee Management methods
+  async getFeeOverview() {
+    const categories = await this.db.select().from(feeCategories);
+    
+    // Calculate totals and stats from the fee categories
+    const totalFees = categories.reduce((sum, cat) => sum + cat.amount, 0);
+    const avgFee = categories.length > 0 ? totalFees / categories.length : 0;
+    
+    return {
+      totalCollected: totalFees,
+      pending: Math.floor(totalFees * 0.15), // Mock pending amount
+      overdue: Math.floor(totalFees * 0.05), // Mock overdue amount
+      categories
+    };
+  }
+
+  async getStudentFees() {
+    // Mock student fee data matching the UI structure
+    return [
+      { id: 1, studentName: "Alice Johnson", studentId: "ST001", class: "10A", totalAmount: 125400, paidAmount: 125400, status: "Paid", dueDate: "2024-01-15" },
+      { id: 2, studentName: "Bob Smith", studentId: "ST002", class: "10B", totalAmount: 125400, paidAmount: 75000, status: "Partial", dueDate: "2024-01-15" },
+      { id: 3, studentName: "Carol Brown", studentId: "ST003", class: "9A", totalAmount: 125400, paidAmount: 0, status: "Pending", dueDate: "2024-01-15" }
+    ];
+  }
+
+  // Transport Management methods
+  async getTransportStats() {
+    const totalBuses = await this.db.select({ count: count() }).from(buses);
+    const activeBuses = await this.db.select({ count: count() }).from(buses).where(eq(buses.status, 'active'));
+    const totalRoutes = await this.db.select({ count: count() }).from(routes);
+    const totalDrivers = await this.db.select({ count: count() }).from(drivers);
+
+    return {
+      totalBuses: totalBuses[0]?.count || 0,
+      activeBuses: activeBuses[0]?.count || 0,
+      totalRoutes: totalRoutes[0]?.count || 0,
+      totalDrivers: totalDrivers[0]?.count || 0,
+      studentsUsingTransport: 42 // Mock data
+    };
+  }
+
+  async getTransportRoutes() {
+    return await this.db
+      .select({
+        id: routes.id,
+        routeName: routes.routeName,
+        busNumber: buses.busNumber,
+        driverName: drivers.name,
+        status: routes.status,
+        stops: routes.stops,
+        startPoint: routes.startPoint,
+        endPoint: routes.endPoint
+      })
+      .from(routes)
+      .leftJoin(buses, eq(routes.busId, buses.id))
+      .leftJoin(drivers, eq(routes.driverId, drivers.id));
+  }
+
+  async getTransportSchedule() {
+    return await this.db
+      .select({
+        id: transportSchedule.id,
+        routeName: routes.routeName,
+        scheduledTime: transportSchedule.scheduledTime,
+        location: transportSchedule.location,
+        status: transportSchedule.status
+      })
+      .from(transportSchedule)
+      .leftJoin(routes, eq(transportSchedule.routeId, routes.id));
+  }
+
+  async getDrivers() {
+    return await this.db.select().from(drivers);
+  }
+
+  // Digital Library methods
+  async getLibraryStats() {
+    const totalBooks = await this.db.select({ count: count() }).from(books);
+    const availableBooks = await this.db.select({ count: count() }).from(books).where(sql`${books.availableCopies} > 0`);
+    
+    return {
+      totalBooks: totalBooks[0]?.count || 0,
+      availableBooks: availableBooks[0]?.count || 0,
+      borrowedBooks: (totalBooks[0]?.count || 0) - (availableBooks[0]?.count || 0),
+      overdueBooks: 3, // Mock data
+      newArrivals: 2 // Mock data
+    };
+  }
+
+  async getBooks() {
+    return await this.db.select().from(books);
+  }
+
+  // Analytics methods
+  async getAnalyticsOverview() {
+    const schoolStatsData = await this.db.select().from(schoolStats).limit(1);
+    const stats = schoolStatsData[0] || {
+      totalStudents: 295,
+      totalTeachers: 2,
+      totalBooks: 36,
+      totalBuses: 3,
+      attendanceRate: 94
+    };
+
+    return {
+      totalStudents: stats.totalStudents,
+      totalTeachers: stats.totalTeachers,
+      attendanceRate: stats.attendanceRate,
+      academicPerformance: 87, // Mock data
+      monthlyStats: {
+        students: [295, 300, 285, 290, 295],
+        attendance: [92, 94, 89, 91, 94],
+        performance: [85, 87, 83, 86, 87]
+      }
+    };
   }
 }
 
