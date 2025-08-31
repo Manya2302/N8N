@@ -10,3 +10,6 @@
 [x] 10. Complete migration from Replit Agent to standard Replit
 [x] 11. Set up PostgreSQL database with proper schema using Drizzle
 [x] 12. Fix database connection issues and verify application runs without errors
+[x] 13. Configure database to use Replit PostgreSQL instead of Supabase
+[x] 14. Push database schema to create all required tables
+[x] 15. Add test user accounts for login verification (admin@school.com and teacher@school.com, password: password123)
