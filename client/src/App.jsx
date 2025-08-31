@@ -23,6 +23,12 @@ import SystemSettings from "@/pages/admin/SystemSettings";
 
 // Teacher Pages
 import TeacherOverview from "@/pages/teacher/Overview";
+import TeacherSchedule from "@/pages/teacher/Schedule";
+import TeacherAttendance from "@/pages/teacher/Attendance";
+import TeacherGrades from "@/pages/teacher/Grades";
+import TeacherCommunication from "@/pages/teacher/Communication";
+import TeacherAssignments from "@/pages/teacher/Assignments";
+import TeacherStudents from "@/pages/teacher/Students";
 
 function Router() {
   return (
@@ -73,9 +79,40 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      {/* Teacher Dashboard Routes */}
       <Route path="/teacher-dashboard" exact>
         <ProtectedRoute allowedRoles={['teacher', 'admin']}>
           <TeacherDashboard><TeacherOverview /></TeacherDashboard>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher-dashboard/schedule">
+        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <TeacherDashboard><TeacherSchedule /></TeacherDashboard>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher-dashboard/attendance">
+        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <TeacherDashboard><TeacherAttendance /></TeacherDashboard>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher-dashboard/grades">
+        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <TeacherDashboard><TeacherGrades /></TeacherDashboard>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher-dashboard/communication">
+        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <TeacherDashboard><TeacherCommunication /></TeacherDashboard>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher-dashboard/assignments">
+        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <TeacherDashboard><TeacherAssignments /></TeacherDashboard>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/teacher-dashboard/students">
+        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <TeacherDashboard><TeacherStudents /></TeacherDashboard>
         </ProtectedRoute>
       </Route>
       {/* Fallback to 404 */}
