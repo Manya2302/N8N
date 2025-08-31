@@ -15,3 +15,7 @@
 [x] 15. Add test user accounts for login verification (admin@school.com and teacher@school.com, password: password123)
 [x] 16. Connect application to user's Supabase database using provided URL
 [x] 17. Verify database connection and existing user accounts (admin@gmail.com and teacher@gmail.com)
+[x] 18. Fix authentication system to work with Supabase database 
+[x] 19. Test registration functionality - admin and teacher accounts working
+[x] 20. Test login functionality - credential validation working properly
+[x] 21. Verify data is being stored in and retrieved from Supabase database

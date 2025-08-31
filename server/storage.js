@@ -19,12 +19,13 @@ class PostgresStorage {
   db;
 
   constructor() {
+    const DATABASE_URL = "postgresql://postgres.qzfbphcntjynkudctpuo:CRMN8N@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres";
     this.client = new Client({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : { rejectUnauthorized: false },
+      connectionString: DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
     });
     this.db = drizzle(this.client);
-    console.log('🔗 Connected to database:', process.env.DATABASE_URL ? 'Supabase' : 'Local');
+    console.log('🔗 Connected to database: Supabase');
   }
 
   async connect() {
