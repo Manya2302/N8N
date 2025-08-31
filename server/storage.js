@@ -21,9 +21,10 @@ class PostgresStorage {
   constructor() {
     this.client = new Client({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : { rejectUnauthorized: false },
     });
     this.db = drizzle(this.client);
+    console.log('🔗 Connected to database:', process.env.DATABASE_URL ? 'Supabase' : 'Local');
   }
 
   async connect() {
