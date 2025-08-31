@@ -1,0 +1,147 @@
+📌 Goal:
+
+Improve the Admin and Teacher Dashboards to follow professional design practices and ensure functionality is fully database-driven using Supabase. The UI should be clean and modular, with each module handled through sidebar navigation and not embedded inline on the dashboard page.
+
+🛠️ Features to Implement & Fix
+1. 📁 Modular Sidebar Navigation (UI Fix)
+
+✅ Problem: Features are placed directly on the main dashboard view instead of accessible through the sidebar.
+🎯 Goal: Make all dashboard functionality accessible only through clickable sidebar items, not inline tabs or rows.
+
+Admin Sidebar (should navigate to separate pages/components):
+
+Overview (default landing page)
+
+Teacher Management
+
+Analytics & Reports
+
+Announcements
+
+Fee Management
+
+Transport
+
+Digital Library
+
+System Settings
+
+Teacher Sidebar (should navigate to separate pages/components):
+
+Overview (default)
+
+Class Schedule
+
+Attendance
+
+Grades & Progress
+
+Parent Communication
+
+Assignments
+
+Student Profiles
+
+2. 🔗 Database Integration using Supabase (Backend)
+
+All dashboard features must use live data from Supabase tables. Ensure full CRUD (Create, Read, Update, Delete) operations are working via Supabase APIs.
+
+Tables to Connect/Use (from your image):
+
+users (roles: admin, teacher, student)
+
+teachers (if not created, split from users by role or new table)
+
+students
+
+attendance
+
+assignments
+
+grades
+
+announcements
+
+modules
+
+audit_logs
+
+refresh_tokens
+
+✅ Use Cases
+Feature	Table(s) Used	Notes
+Teacher Management	users (role = teacher)	Create/edit/delete teachers
+Student Profiles	students, users	Linked to teacher view
+Attendance	attendance, students	Date, student ID, status
+Assignments	assignments, students	Track submission status
+Grades	grades, students	Grade per assignment/module
+Parent Communication	Optional new table: messages	Teacher <-> Parent messages
+Digital Library	Optional new table: resources	File links, types
+Transport	Optional new table: transport	Bus ID, route, assigned students
+Fee Management	Optional new table: fees	Paid status, invoices
+Announcements	announcements	Filter by role: all, teachers, students
+Analytics & Reports	Use queries on above tables	Attendance %, performance trends
+
+🆕 Suggested New Tables (if needed):
+
+resources → For digital library (files, titles, type)
+
+transport → For bus info, assigned students
+
+fees → For fee status, invoice number, amount
+
+messages → For parent-teacher communication logs
+
+3. 🔐 Auth & Role-based Dashboard Access
+
+Ensure users table has a role field (admin, teacher, student) and redirect to the correct dashboard based on login:
+
+Admin → /admin/dashboard
+
+Teacher → /teacher/dashboard
+
+4. 🎨 UI/UX Enhancements
+
+Clean up logout button styling for both dashboards (make visually distinct and accessible).
+
+Match design consistency between admin and teacher dashboards (spacing, icons, fonts, components).
+
+Use modular components for every page instead of embedding everything in one screen.
+
+5. 📅 Bonus: Attendance via Google API (Optional Advanced Feature)
+
+If needed, use Google Calendar API or Google Sheets API to:
+
+Log attendance to Google Sheets
+
+Auto-generate attendance reports
+
+Sync calendar for scheduled classes
+
+Use Replit environment variables to store Google API keys securely.
+
+🧱 Tech Stack Recommendation for Replit:
+
+Frontend: React.js with Tailwind CSS (or your current stack)
+
+Backend & DB: Supabase (already configured)
+
+Auth: Supabase Auth or Firebase (if needed)
+
+API Integration: Axios + Supabase client SDK
+
+File Storage (for Library): Supabase Storage or Firebase Storage
+
+✅ Deliverables:
+
+Fixed sidebar layout with separate pages/components for each feature
+
+Full Supabase database connection for CRUD operations
+
+Role-based routing
+
+Responsive, clean dashboard UI
+
+Updated logout button styling
+
+Optional: API integration for attendance syncing

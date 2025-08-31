@@ -217,8 +217,17 @@ export async function registerRoutes(app) {
         await storage.deleteRefreshToken(refreshTokenHash);
       }
 
-      res.clearCookie('refreshToken');
-      await storage.createAuditLog(req.user.id, 'logout', {}, req.ip);
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      });
+      
+      // Only create audit log if user exists
+      if (req.user && req.user.id) {
+        await storage.createAuditLog(req.user.id, 'logout', {}, req.ip);
+      }
       
       res.json({ message: 'Logged out successfully' });
     } catch (error) {

@@ -49,13 +49,8 @@ export default function Sidebar() {
   const dashboardTitle = user?.role === 'admin' ? 'Admin Dashboard' : 'Teacher Dashboard';
 
   const handleNavClick = (path) => {
-    // For now, just show current path selection
-    if (path === '/teacher-dashboard' || path === '/admin-dashboard') {
-      setLocation(path);
-    } else {
-      console.log(`Navigate to: ${path}`);
-      // TODO: Implement sub-route handling
-    }
+    console.log(`Navigate to: ${path}`);
+    setLocation(path);
   };
 
   const handleLogout = async () => {
