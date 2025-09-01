@@ -11,6 +11,7 @@ import {
   assignments,
   announcements,
   refreshTokens,
+  books,
 } from "@shared/schema";
 
 
@@ -71,11 +72,31 @@ class PostgresStorage {
   }
 
   // Student methods
-  async getStudents(teacherId) {
-    if (teacherId) {
-      return await this.db.select().from(students).where(eq(students.teacherId, teacherId));
+  async getStudents(teacherId, classId) {
+    let query = this.db.select().from(students);
+    
+    if (teacherId && classId) {
+      // Filter by both teacher and class
+      query = query.where(and(eq(students.teacherId, teacherId), eq(students.classId, classId)));
+    } else if (teacherId) {
+      // Filter by teacher only
+      query = query.where(eq(students.teacherId, teacherId));
+    } else if (classId) {
+      // Filter by class only
+      query = query.where(eq(students.classId, classId));
     }
-    return await this.db.select().from(students);
+    
+    return await query;
+  }
+
+  async getStudent(id) {
+    const result = await this.db.select().from(students).where(eq(students.id, id)).limit(1);
+    return result[0];
+  }
+
+  async deleteStudent(id) {
+    const result = await this.db.delete(students).where(eq(students.id, id)).returning();
+    return result.length > 0;
   }
 
   async getStudent(id) {
@@ -506,6 +527,182 @@ class PostgresStorage {
   async deleteAnnouncement(id) {
     const result = await this.db.delete(announcements).where(eq(announcements.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Class management methods
+  async getClasses(teacherId) {
+    if (teacherId) {
+      return await this.db.select().from(classes).where(eq(classes.teacherId, teacherId));
+    }
+    return await this.db.select().from(classes);
+  }
+
+  async createClass(classData) {
+    const result = await this.db.insert(classes).values(classData).returning();
+    return result[0];
+  }
+
+  async updateClass(id, updates, teacherId) {
+    let query = this.db.update(classes).set({ ...updates, updatedAt: new Date() }).where(eq(classes.id, id));
+    
+    // If teacherId provided, ensure teacher can only update their own classes
+    if (teacherId) {
+      query = query.where(eq(classes.teacherId, teacherId));
+    }
+    
+    const result = await query.returning();
+    return result[0];
+  }
+
+  async deleteClass(id, teacherId) {
+    let query = this.db.delete(classes).where(eq(classes.id, id));
+    
+    // If teacherId provided, ensure teacher can only delete their own classes
+    if (teacherId) {
+      query = query.where(eq(classes.teacherId, teacherId));
+    }
+    
+    const result = await query.returning();
+    return result.length > 0;
+  }
+
+  // Communication methods
+  async createCommunication(communicationData) {
+    const result = await this.db.insert(communications).values(communicationData).returning();
+    return result[0];
+  }
+
+  async getCommunications(teacherId) {
+    return await this.db
+      .select({
+        id: communications.id,
+        studentName: students.name,
+        parentPhone: communications.parentPhone,
+        message: communications.message,
+        type: communications.type,
+        status: communications.status,
+        createdAt: communications.createdAt
+      })
+      .from(communications)
+      .leftJoin(students, eq(communications.studentId, students.id))
+      .where(eq(communications.teacherId, teacherId))
+      .orderBy(desc(communications.createdAt));
+  }
+
+  // Meeting methods
+  async createMeeting(meetingData) {
+    const result = await this.db.insert(meetings).values(meetingData).returning();
+    return result[0];
+  }
+
+  async getMeetings(teacherId) {
+    return await this.db
+      .select({
+        id: meetings.id,
+        studentName: students.name,
+        title: meetings.title,
+        description: meetings.description,
+        scheduledAt: meetings.scheduledAt,
+        status: meetings.status,
+        meetingType: meetings.meetingType,
+        createdAt: meetings.createdAt
+      })
+      .from(meetings)
+      .leftJoin(students, eq(meetings.studentId, students.id))
+      .where(eq(meetings.teacherId, teacherId))
+      .orderBy(desc(meetings.scheduledAt));
+  }
+
+  async updateMeeting(id, updates, teacherId) {
+    const result = await this.db
+      .update(meetings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(meetings.id, id), eq(meetings.teacherId, teacherId)))
+      .returning();
+    return result[0];
+  }
+
+  // Assignment methods
+  async createAssignment(assignmentData) {
+    const result = await this.db.insert(assignments).values(assignmentData).returning();
+    return result[0];
+  }
+
+  async updateAssignment(id, updates, teacherId) {
+    const result = await this.db
+      .update(assignments)
+      .set(updates)
+      .where(and(eq(assignments.id, id), eq(assignments.teacherId, teacherId)))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAssignment(id, teacherId) {
+    const result = await this.db
+      .delete(assignments)
+      .where(and(eq(assignments.id, id), eq(assignments.teacherId, teacherId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Attendance methods
+  async getAttendanceByClass(classId, teacherId, date) {
+    let query = this.db
+      .select({
+        id: attendance.id,
+        studentId: students.id,
+        studentName: students.name,
+        rollNo: students.rollNo,
+        status: attendance.status,
+        notes: attendance.notes,
+        date: attendance.date
+      })
+      .from(students)
+      .leftJoin(attendance, and(
+        eq(attendance.studentId, students.id),
+        eq(attendance.teacherId, teacherId),
+        date ? sql`DATE(${attendance.date}) = DATE(${date})` : sql`DATE(${attendance.date}) = CURRENT_DATE`
+      ))
+      .where(eq(students.classId, classId));
+    
+    return await query;
+  }
+
+  async markAttendance(attendanceData) {
+    const result = await this.db.insert(attendance).values(attendanceData).returning();
+    return result[0];
+  }
+
+  async updateAttendance(id, updates) {
+    const result = await this.db
+      .update(attendance)
+      .set(updates)
+      .where(eq(attendance.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Grade methods
+  async createGrade(gradeData) {
+    const result = await this.db.insert(grades).values(gradeData).returning();
+    return result[0];
+  }
+
+  async getGradesByStudent(studentId, teacherId) {
+    return await this.db
+      .select()
+      .from(grades)
+      .where(and(eq(grades.studentId, studentId), eq(grades.teacherId, teacherId)))
+      .orderBy(desc(grades.examDate));
+  }
+
+  async updateGrade(id, updates, teacherId) {
+    const result = await this.db
+      .update(grades)
+      .set(updates)
+      .where(and(eq(grades.id, id), eq(grades.teacherId, teacherId)))
+      .returning();
+    return result[0];
   }
 
   // Analytics methods

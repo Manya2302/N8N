@@ -9,7 +9,8 @@ import {
   insertAttendanceSchema,
   insertGradeSchema,
   insertAssignmentSchema,
-  insertAnnouncementSchema
+  insertAnnouncementSchema,
+  insertBookSchema
 } from "@shared/schema";
 import { storage } from "./storage";
 import { AuthService, generateCSRFToken } from "./auth.js";
@@ -762,6 +763,129 @@ export async function registerRoutes(app) {
     } catch (error) {
       console.error('Create communication error:', error);
       res.status(400).json({ error: error.message || 'Message could not be stored in database' });
+    }
+  });
+
+  // Meeting routes
+  app.get('/api/meetings', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), async (req, res) => {
+    try {
+      const meetings = await storage.getMeetings(req.user.id);
+      res.json(meetings);
+    } catch (error) {
+      console.error('Get meetings error:', error);
+      res.status(500).json({ error: 'Failed to fetch meetings' });
+    }
+  });
+
+  app.post('/api/meetings', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertMeetingSchema.parse({
+        ...req.body,
+        teacherId: req.user.id
+      });
+      
+      const meeting = await storage.createMeeting(data);
+      res.status(201).json({ message: 'Meeting has been arranged', meeting });
+    } catch (error) {
+      console.error('Create meeting error:', error);
+      res.status(400).json({ error: error.message || 'Meeting could not be stored in database' });
+    }
+  });
+
+  app.patch('/api/meetings/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertMeetingSchema.partial().parse(req.body);
+      const meeting = await storage.updateMeeting(req.params.id, data, req.user.id);
+      if (!meeting) {
+        return res.status(404).json({ error: 'Meeting not found or unauthorized' });
+      }
+      res.json(meeting);
+    } catch (error) {
+      console.error('Update meeting error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update meeting' });
+    }
+  });
+
+  // Attendance routes
+  app.get('/api/attendance/:classId', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), async (req, res) => {
+    try {
+      const { classId } = req.params;
+      const { date } = req.query;
+      const attendance = await storage.getAttendanceByClass(classId, req.user.id, date);
+      res.json(attendance);
+    } catch (error) {
+      console.error('Get attendance error:', error);
+      res.status(500).json({ error: 'Failed to fetch attendance' });
+    }
+  });
+
+  app.post('/api/attendance', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertAttendanceSchema.parse({
+        ...req.body,
+        teacherId: req.user.id
+      });
+      
+      const attendance = await storage.markAttendance(data);
+      res.status(201).json({ message: 'Attendance marked successfully', attendance });
+    } catch (error) {
+      console.error('Mark attendance error:', error);
+      res.status(400).json({ error: error.message || 'Failed to mark attendance' });
+    }
+  });
+
+  app.patch('/api/attendance/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertAttendanceSchema.partial().parse(req.body);
+      const attendance = await storage.updateAttendance(req.params.id, data);
+      if (!attendance) {
+        return res.status(404).json({ error: 'Attendance record not found' });
+      }
+      res.json({ message: 'Attendance updated successfully', attendance });
+    } catch (error) {
+      console.error('Update attendance error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update attendance' });
+    }
+  });
+
+  // Grades routes
+  app.get('/api/grades/student/:studentId', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), async (req, res) => {
+    try {
+      const { studentId } = req.params;
+      const grades = await storage.getGradesByStudent(studentId, req.user.id);
+      res.json(grades);
+    } catch (error) {
+      console.error('Get grades error:', error);
+      res.status(500).json({ error: 'Failed to fetch grades' });
+    }
+  });
+
+  app.post('/api/grades', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertGradeSchema.parse({
+        ...req.body,
+        teacherId: req.user.id
+      });
+      
+      const grade = await storage.createGrade(data);
+      res.status(201).json({ message: 'Grade saved successfully', grade });
+    } catch (error) {
+      console.error('Create grade error:', error);
+      res.status(400).json({ error: error.message || 'Failed to save grade' });
+    }
+  });
+
+  app.patch('/api/grades/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertGradeSchema.partial().parse(req.body);
+      const grade = await storage.updateGrade(req.params.id, data, req.user.id);
+      if (!grade) {
+        return res.status(404).json({ error: 'Grade not found or unauthorized' });
+      }
+      res.json({ message: 'Grade updated successfully', grade });
+    } catch (error) {
+      console.error('Update grade error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update grade' });
     }
   });
 

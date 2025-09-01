@@ -1,403 +1,473 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Search, Phone, Mail, MapPin, Calendar, Edit, Eye, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '../../lib/api';
+import { 
+  Users, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Search, 
+  UserPlus,
+  GraduationCap,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar
+} from 'lucide-react';
 
 export default function Students() {
-  const [classFilter, setClassFilter] = useState('all');
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [studentForm, setStudentForm] = useState({
+    name: '',
+    rollNo: '',
+    studentNumber: '',
+    parentNumber1: '',
+    parentNumber2: '',
+    extraInfo: ''
+  });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Mock data
-  const students = [
-    {
-      id: 1,
-      name: 'John Smith',
-      rollNo: '101',
-      class: 'Grade 10-A',
-      email: 'john.smith@school.edu',
-      phone: '+1 234-567-8901',
-      parentName: 'Mrs. Smith',
-      parentPhone: '+1 234-567-8902',
-      address: '123 Main St, City, State 12345',
-      dateOfBirth: '2008-05-15',
-      attendance: 92,
-      averageGrade: 'A',
-      status: 'active',
-      subjects: ['Mathematics', 'Physics', 'Chemistry'],
-      recentActivity: [
-        { type: 'assignment', description: 'Submitted Algebra homework', date: '2024-03-10' },
-        { type: 'attendance', description: 'Present in class', date: '2024-03-10' },
-        { type: 'grade', description: 'Received A- in Physics quiz', date: '2024-03-08' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Emma Johnson',
-      rollNo: '102',
-      class: 'Grade 10-A',
-      email: 'emma.johnson@school.edu',
-      phone: '+1 234-567-8903',
-      parentName: 'Mr. Johnson',
-      parentPhone: '+1 234-567-8904',
-      address: '456 Oak Ave, City, State 12345',
-      dateOfBirth: '2008-08-22',
-      attendance: 98,
-      averageGrade: 'A+',
-      status: 'active',
-      subjects: ['Mathematics', 'Physics', 'Chemistry'],
-      recentActivity: [
-        { type: 'assignment', description: 'Submitted lab report early', date: '2024-03-11' },
-        { type: 'attendance', description: 'Present in class', date: '2024-03-11' },
-        { type: 'grade', description: 'Received A+ in Chemistry test', date: '2024-03-09' }
-      ]
-    },
-    {
-      id: 3,
-      name: 'Michael Brown',
-      rollNo: '103',
-      class: 'Grade 10-A',
-      email: 'michael.brown@school.edu',
-      phone: '+1 234-567-8905',
-      parentName: 'Mrs. Brown',
-      parentPhone: '+1 234-567-8906',
-      address: '789 Pine St, City, State 12345',
-      dateOfBirth: '2008-12-03',
-      attendance: 85,
-      averageGrade: 'B+',
-      status: 'needs_attention',
-      subjects: ['Mathematics', 'Physics'],
-      recentActivity: [
-        { type: 'assignment', description: 'Late submission for Math homework', date: '2024-03-10' },
-        { type: 'attendance', description: 'Absent from class', date: '2024-03-09' },
-        { type: 'grade', description: 'Received B in Physics quiz', date: '2024-03-07' }
-      ]
-    },
-    {
-      id: 4,
-      name: 'Sarah Davis',
-      rollNo: '104',
-      class: 'Grade 10-A',
-      email: 'sarah.davis@school.edu',
-      phone: '+1 234-567-8907',
-      parentName: 'Mr. Davis',
-      parentPhone: '+1 234-567-8908',
-      address: '321 Elm St, City, State 12345',
-      dateOfBirth: '2008-03-18',
-      attendance: 95,
-      averageGrade: 'A-',
-      status: 'active',
-      subjects: ['Mathematics', 'Physics', 'Chemistry'],
-      recentActivity: [
-        { type: 'assignment', description: 'Excellent performance in group project', date: '2024-03-11' },
-        { type: 'attendance', description: 'Present in class', date: '2024-03-11' },
-        { type: 'grade', description: 'Received A in Math test', date: '2024-03-08' }
-      ]
-    }
-  ];
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const classes = [
-    { id: 'grade-10a', name: 'Grade 10-A' },
-    { id: 'grade-11b', name: 'Grade 11-B' },
-    { id: 'grade-12a', name: 'Grade 12-A' }
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-green-50 text-green-700';
-      case 'needs_attention': return 'bg-yellow-50 text-yellow-700';
-      case 'inactive': return 'bg-red-50 text-red-700';
-      default: return 'bg-gray-50 text-gray-700';
-    }
-  };
-
-  const getGradeColor = (grade) => {
-    if (grade.startsWith('A')) return 'text-green-600';
-    if (grade.startsWith('B')) return 'text-blue-600';
-    if (grade.startsWith('C')) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getAttendanceColor = (attendance) => {
-    if (attendance >= 95) return 'text-green-600';
-    if (attendance >= 85) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.rollNo.includes(searchTerm) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = classFilter === 'all' || student.class === classFilter;
-    return matchesSearch && matchesClass;
+  // Fetch teacher's classes
+  const { data: classes, isLoading: classesLoading } = useQuery({
+    queryKey: ['/api/classes'],
+    queryFn: () => apiClient.get('/classes'),
   });
 
-  const stats = {
-    total: students.length,
-    active: students.filter(s => s.status === 'active').length,
-    needsAttention: students.filter(s => s.status === 'needs_attention').length,
-    averageAttendance: Math.round(students.reduce((sum, s) => sum + s.attendance, 0) / students.length)
+  // Fetch students for selected class
+  const { data: students, isLoading: studentsLoading, refetch: refetchStudents } = useQuery({
+    queryKey: ['/api/students', selectedClass?.id],
+    queryFn: () => apiClient.get(`/students?classId=${selectedClass.id}`),
+    enabled: !!selectedClass?.id,
+  });
+
+  // Save student mutation
+  const saveStudent = useMutation({
+    mutationFn: async (studentData) => {
+      if (editingStudent) {
+        return apiClient.patch(`/students/${editingStudent.id}`, studentData);
+      } else {
+        return apiClient.post('/students', {
+          ...studentData,
+          classId: selectedClass?.id,
+          teacherId: null // Will be set by backend based on auth
+        });
+      }
+    },
+    onSuccess: (response) => {
+      toast({ title: response.message || (editingStudent ? 'Student updated successfully' : 'Student added successfully') });
+      setIsDialogOpen(false);
+      setEditingStudent(null);
+      setStudentForm({
+        name: '',
+        rollNo: '',
+        studentNumber: '',
+        parentNumber1: '',
+        parentNumber2: '',
+        extraInfo: ''
+      });
+      refetchStudents();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error saving student', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  // Delete student mutation
+  const deleteStudent = useMutation({
+    mutationFn: async (studentId) => {
+      return apiClient.delete(`/students/${studentId}`);
+    },
+    onSuccess: (response) => {
+      toast({ title: response.message || 'Student deleted successfully' });
+      refetchStudents();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error deleting student', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const handleSaveStudent = () => {
+    if (!studentForm.name.trim() || !studentForm.rollNo.trim() || !selectedClass) {
+      toast({ 
+        title: 'Validation Error', 
+        description: 'Please fill in name, roll number and select a class', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    // Check for duplicate roll number (excluding current student if editing)
+    const existingStudent = students?.find(s => 
+      s.rollNo === studentForm.rollNo && 
+      (!editingStudent || s.id !== editingStudent.id)
+    );
+    
+    if (existingStudent) {
+      toast({ 
+        title: 'Validation Error', 
+        description: 'A student with this roll number already exists in this class', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    saveStudent.mutate(studentForm);
   };
+
+  const handleEditStudent = (student) => {
+    setEditingStudent(student);
+    setStudentForm({
+      name: student.name,
+      rollNo: student.rollNo,
+      studentNumber: student.studentNumber || '',
+      parentNumber1: student.parentNumber1 || '',
+      parentNumber2: student.parentNumber2 || '',
+      extraInfo: student.extraInfo ? JSON.stringify(student.extraInfo) : ''
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteStudent = (studentId) => {
+    if (window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+      deleteStudent.mutate(studentId);
+    }
+  };
+
+  const openNewStudentDialog = () => {
+    if (!selectedClass) {
+      toast({ 
+        title: 'Select Class First', 
+        description: 'Please select a class before adding a student', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
+    setEditingStudent(null);
+    setStudentForm({
+      name: '',
+      rollNo: '',
+      studentNumber: '',
+      parentNumber1: '',
+      parentNumber2: '',
+      extraInfo: ''
+    });
+    setIsDialogOpen(true);
+  };
+
+  // Filter students based on search term
+  const filteredStudents = students?.filter(student => 
+    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.rollNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.studentNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
-          <p className="text-muted-foreground">Manage and track individual student information and progress</p>
+          <h1 className="text-3xl font-bold tracking-tight">Student Management</h1>
+          <p className="text-muted-foreground">Add and manage students in your classes</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
+        <Button onClick={openNewStudentDialog} data-testid="button-new-student">
+          <Plus className="w-4 h-4 mr-2" />
           Add Student
         </Button>
       </div>
 
-      {/* Student Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Total Students</p>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-total-students">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Users className="h-8 w-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Total Students</p>
+                <p className="text-2xl font-bold text-blue-600">{students?.length || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-                <p className="text-sm text-muted-foreground">Active Students</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Users className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-yellow-600">{stats.needsAttention}</p>
-                <p className="text-sm text-muted-foreground">Need Attention</p>
+
+        <Card data-testid="card-selected-class">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <GraduationCap className="h-8 w-8 text-green-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Selected Class</p>
+                <p className="text-lg font-bold text-green-600">
+                  {selectedClass ? `${selectedClass.name} - ${selectedClass.subject}` : 'None'}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Calendar className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-purple-600">{stats.averageAttendance}%</p>
-                <p className="text-sm text-muted-foreground">Avg Attendance</p>
+
+        <Card data-testid="card-total-classes">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Calendar className="h-8 w-8 text-purple-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-muted-foreground">Your Classes</p>
+                <p className="text-2xl font-bold text-purple-600">{classes?.length || 0}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by class" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
-                {classes.map(cls => (
-                  <SelectItem key={cls.id} value={cls.name}>{cls.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search students by name, roll number, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+      {/* Class Selection */}
+      <Card data-testid="card-class-selection">
+        <CardHeader>
+          <CardTitle>Select Class</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedClass?.id || ''} onValueChange={(value) => {
+            const selected = classes?.find(c => c.id === value);
+            setSelectedClass(selected);
+          }}>
+            <SelectTrigger data-testid="select-student-class">
+              <SelectValue placeholder="Choose a class to manage students" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes?.map((cls) => (
+                <SelectItem key={cls.id} value={cls.id}>
+                  {cls.name} - {cls.subject}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Students List */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Student List</CardTitle>
-            </CardHeader>
-            <CardContent>
+      {/* Students List */}
+      {selectedClass && (
+        <Card data-testid="card-students-list">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Students in {selectedClass.name} ({filteredStudents.length})
+              </span>
+              <div className="flex items-center gap-2">
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                  data-testid="input-search-students"
+                />
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {studentsLoading ? (
+              <div className="text-center py-8">Loading students...</div>
+            ) : filteredStudents && filteredStudents.length > 0 ? (
               <div className="space-y-4">
-                {filteredStudents.map((student) => (
+                {filteredStudents.map((student, index) => (
                   <div 
                     key={student.id} 
-                    className={`p-4 border border-border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${
-                      selectedStudent?.id === student.id ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => setSelectedStudent(student)}
+                    className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                    data-testid={`student-card-${index}`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium text-primary">
-                          {student.name.split(' ').map(n => n[0]).join('')}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4 flex-1">
+                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                          <span className="text-white font-medium">
+                            {student.name?.substring(0, 2).toUpperCase() || 'UN'}
+                          </span>
                         </div>
-                        <div>
-                          <h3 className="font-semibold">{student.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Roll No: {student.rollNo} • {student.class}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{student.email}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-lg">{student.name}</h3>
+                            <Badge variant="outline">Roll: {student.rollNo}</Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                            {student.studentNumber && (
+                              <div className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                Student: {student.studentNumber}
+                              </div>
+                            )}
+                            {student.parentNumber1 && (
+                              <div className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                Parent 1: {student.parentNumber1}
+                              </div>
+                            )}
+                            {student.parentNumber2 && (
+                              <div className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                Parent 2: {student.parentNumber2}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              Added: {new Date(student.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          
+                          {student.extraInfo && typeof student.extraInfo === 'object' && (
+                            <div className="mt-2 text-xs text-muted-foreground">
+                              Additional Info: {JSON.stringify(student.extraInfo)}
+                            </div>
+                          )}
                         </div>
                       </div>
+                      
                       <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(student.status)}>
-                          {student.status.replace('_', ' ').charAt(0).toUpperCase() + student.status.replace('_', ' ').slice(1)}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditStudent(student)}
+                          data-testid={`button-edit-student-${index}`}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <p className={`text-lg font-bold ${getAttendanceColor(student.attendance)}`}>
-                          {student.attendance}%
-                        </p>
-                        <p className="text-xs text-muted-foreground">Attendance</p>
-                      </div>
-                      <div>
-                        <p className={`text-lg font-bold ${getGradeColor(student.averageGrade)}`}>
-                          {student.averageGrade}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Average Grade</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-blue-600">{student.subjects.length}</p>
-                        <p className="text-xs text-muted-foreground">Subjects</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteStudent(student.id)}
+                          disabled={deleteStudent.isPending}
+                          data-testid={`button-delete-student-${index}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm ? 'No students found matching your search' : 'No students added to this class yet'}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Student Details */}
-        <div>
-          {selectedStudent ? (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    Student Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-lg font-medium text-primary mx-auto mb-2">
-                      {selectedStudent.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <h3 className="font-semibold">{selectedStudent.name}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedStudent.class}</p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{selectedStudent.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{selectedStudent.email}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{selectedStudent.address}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">Born: {selectedStudent.dateOfBirth}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-3 border-t">
-                    <h4 className="font-medium mb-2">Parent/Guardian</h4>
-                    <p className="text-sm font-medium">{selectedStudent.parentName}</p>
-                    <p className="text-sm text-muted-foreground">{selectedStudent.parentPhone}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 pt-3">
-                    <Button size="sm" className="flex-1">
-                      <Phone className="w-3 h-3 mr-1" />
-                      Call Parent
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Mail className="w-3 h-3 mr-1" />
-                      Send Message
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+      {!selectedClass && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Select a Class to Manage Students</h3>
+            <p className="text-muted-foreground">Choose a class from above to view and manage its students</p>
+          </CardContent>
+        </Card>
+      )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {selectedStudent.recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-2 ${
-                          activity.type === 'assignment' ? 'bg-blue-500' :
-                          activity.type === 'attendance' ? 'bg-green-500' :
-                          activity.type === 'grade' ? 'bg-purple-500' : 'bg-gray-500'
-                        }`}></div>
-                        <div className="flex-1">
-                          <p className="text-sm">{activity.description}</p>
-                          <p className="text-xs text-muted-foreground">{activity.date}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+      {/* Student Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingStudent ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="studentName">Student Name *</Label>
+                <Input
+                  id="studentName"
+                  value={studentForm.name}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter student name"
+                  data-testid="input-student-name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="rollNo">Roll Number *</Label>
+                <Input
+                  id="rollNo"
+                  value={studentForm.rollNo}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, rollNo: e.target.value }))}
+                  placeholder="e.g., 101"
+                  data-testid="input-roll-number"
+                />
+              </div>
             </div>
-          ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-medium mb-2">No Student Selected</h3>
-                <p className="text-sm text-muted-foreground">
-                  Click on a student from the list to view their detailed information and recent activity.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+
+            <div>
+              <Label htmlFor="studentNumber">Student Phone</Label>
+              <Input
+                id="studentNumber"
+                value={studentForm.studentNumber}
+                onChange={(e) => setStudentForm(prev => ({ ...prev, studentNumber: e.target.value }))}
+                placeholder="Student's phone number"
+                data-testid="input-student-phone"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="parentNumber1">Parent Phone 1</Label>
+                <Input
+                  id="parentNumber1"
+                  value={studentForm.parentNumber1}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, parentNumber1: e.target.value }))}
+                  placeholder="Primary parent phone"
+                  data-testid="input-parent-phone-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parentNumber2">Parent Phone 2</Label>
+                <Input
+                  id="parentNumber2"
+                  value={studentForm.parentNumber2}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, parentNumber2: e.target.value }))}
+                  placeholder="Secondary parent phone"
+                  data-testid="input-parent-phone-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="extraInfo">Additional Information</Label>
+              <Input
+                id="extraInfo"
+                value={studentForm.extraInfo}
+                onChange={(e) => setStudentForm(prev => ({ ...prev, extraInfo: e.target.value }))}
+                placeholder="Any additional notes (optional)"
+                data-testid="input-extra-info"
+              />
+            </div>
+
+            <Button 
+              onClick={handleSaveStudent} 
+              disabled={saveStudent.isPending || !studentForm.name.trim() || !studentForm.rollNo.trim()}
+              className="w-full"
+              data-testid="button-save-student"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              {saveStudent.isPending ? 'Saving...' : (editingStudent ? 'Update Student' : 'Add Student')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,333 +1,420 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, TrendingUp, Award, Search, Plus, Edit, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '../../lib/api';
+import { Plus, Pencil, Save, GraduationCap, TrendingUp, Target, Award } from 'lucide-react';
 
 export default function Grades() {
-  const [selectedClass, setSelectedClass] = useState('all');
-  const [selectedSubject, setSelectedSubject] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Mock data
-  const classes = [
-    { id: 'grade-10a', name: 'Grade 10-A' },
-    { id: 'grade-11b', name: 'Grade 11-B' },
-    { id: 'grade-12a', name: 'Grade 12-A' }
-  ];
-
-  const subjects = [
-    { id: 'mathematics', name: 'Mathematics' },
-    { id: 'physics', name: 'Physics' },
-    { id: 'chemistry', name: 'Chemistry' }
-  ];
-
-  const gradeData = [
-    {
-      id: 1,
-      student: 'John Smith',
-      rollNo: '101',
-      class: 'Grade 10-A',
-      mathematics: { grade: 'A', percentage: 92, trend: 'up' },
-      physics: { grade: 'B+', percentage: 88, trend: 'up' },
-      chemistry: { grade: 'A-', percentage: 90, trend: 'stable' },
-      overall: 90
-    },
-    {
-      id: 2,
-      student: 'Emma Johnson',
-      rollNo: '102',
-      class: 'Grade 10-A',
-      mathematics: { grade: 'A+', percentage: 96, trend: 'up' },
-      physics: { grade: 'A', percentage: 94, trend: 'up' },
-      chemistry: { grade: 'A+', percentage: 97, trend: 'up' },
-      overall: 96
-    },
-    {
-      id: 3,
-      student: 'Michael Brown',
-      rollNo: '103',
-      class: 'Grade 10-A',
-      mathematics: { grade: 'B', percentage: 82, trend: 'down' },
-      physics: { grade: 'B-', percentage: 78, trend: 'down' },
-      chemistry: { grade: 'B+', percentage: 85, trend: 'stable' },
-      overall: 82
-    },
-    {
-      id: 4,
-      student: 'Sarah Davis',
-      rollNo: '104',
-      class: 'Grade 10-A',
-      mathematics: { grade: 'A-', percentage: 89, trend: 'up' },
-      physics: { grade: 'A-', percentage: 87, trend: 'stable' },
-      chemistry: { grade: 'A', percentage: 91, trend: 'up' },
-      overall: 89
-    }
-  ];
-
-  const recentExams = [
-    { subject: 'Mathematics', type: 'Weekly Test', date: '2024-03-08', class: 'Grade 10-A', avgScore: 85 },
-    { subject: 'Physics', type: 'Unit Test', date: '2024-03-06', class: 'Grade 11-B', avgScore: 78 },
-    { subject: 'Chemistry', type: 'Lab Assessment', date: '2024-03-05', class: 'Grade 12-A', avgScore: 92 }
-  ];
-
-  const getGradeColor = (grade) => {
-    if (grade.startsWith('A')) return 'text-green-600 bg-green-50';
-    if (grade.startsWith('B')) return 'text-blue-600 bg-blue-50';
-    if (grade.startsWith('C')) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
-  };
-
-  const getTrendIcon = (trend) => {
-    if (trend === 'up') return <TrendingUp className="w-3 h-3 text-green-600" />;
-    if (trend === 'down') return <TrendingUp className="w-3 h-3 text-red-600 rotate-180" />;
-    return <div className="w-3 h-3 rounded-full bg-gray-400"></div>;
-  };
-
-  const filteredData = gradeData.filter(student => {
-    const matchesSearch = student.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.rollNo.includes(searchTerm);
-    const matchesClass = selectedClass === 'all' || student.class === selectedClass;
-    return matchesSearch && matchesClass;
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [gradeForm, setGradeForm] = useState({
+    subject: '',
+    examType: '',
+    examDate: '',
+    marksObtained: '',
+    totalMarks: '',
+    notes: ''
   });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingGrade, setEditingGrade] = useState(null);
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch teacher's classes
+  const { data: classes, isLoading: classesLoading } = useQuery({
+    queryKey: ['/api/classes'],
+    queryFn: () => apiClient.get('/classes'),
+  });
+
+  // Fetch students for selected class
+  const { data: students, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/students', selectedClass?.id],
+    queryFn: () => apiClient.get(`/students?classId=${selectedClass.id}`),
+    enabled: !!selectedClass?.id,
+  });
+
+  // Fetch grades for selected student
+  const { data: grades, isLoading: gradesLoading, refetch: refetchGrades } = useQuery({
+    queryKey: ['/api/grades/student', selectedStudent?.id],
+    queryFn: () => apiClient.get(`/grades/student/${selectedStudent.id}`),
+    enabled: !!selectedStudent?.id,
+  });
+
+  // Save grade mutation
+  const saveGrade = useMutation({
+    mutationFn: async (gradeData) => {
+      if (editingGrade) {
+        return apiClient.patch(`/grades/${editingGrade.id}`, gradeData);
+      } else {
+        return apiClient.post('/grades', {
+          ...gradeData,
+          studentId: selectedStudent.id
+        });
+      }
+    },
+    onSuccess: () => {
+      toast({ title: editingGrade ? 'Grade updated successfully' : 'Grade added successfully' });
+      setIsDialogOpen(false);
+      setEditingGrade(null);
+      setGradeForm({
+        subject: '',
+        examType: '',
+        examDate: '',
+        marksObtained: '',
+        totalMarks: '',
+        notes: ''
+      });
+      refetchGrades();
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error saving grade', 
+        description: error.message, 
+        variant: 'destructive' 
+      });
+    },
+  });
+
+  const handleSaveGrade = () => {
+    if (!gradeForm.subject || !gradeForm.examType || !gradeForm.marksObtained || !gradeForm.totalMarks) {
+      toast({ 
+        title: 'Validation Error', 
+        description: 'Please fill in all required fields', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    saveGrade.mutate(gradeForm);
+  };
+
+  const handleEditGrade = (grade) => {
+    setEditingGrade(grade);
+    setGradeForm({
+      subject: grade.subject,
+      examType: grade.examType,
+      examDate: grade.examDate.split('T')[0],
+      marksObtained: grade.marksObtained.toString(),
+      totalMarks: grade.totalMarks.toString(),
+      notes: grade.notes || ''
+    });
+    setIsDialogOpen(true);
+  };
+
+  // Calculate student's overall performance
+  const calculatePerformance = () => {
+    if (!grades || grades.length === 0) return null;
+    
+    const totalMarks = grades.reduce((sum, grade) => sum + parseFloat(grade.marksObtained), 0);
+    const totalPossible = grades.reduce((sum, grade) => sum + parseFloat(grade.totalMarks), 0);
+    const percentage = (totalMarks / totalPossible) * 100;
+    
+    return {
+      totalMarks,
+      totalPossible,
+      percentage: percentage.toFixed(2),
+      gradeCount: grades.length
+    };
+  };
+
+  const performance = calculatePerformance();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Grades & Progress</h1>
-          <p className="text-muted-foreground">Track student performance and academic progress</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export Report
-          </Button>
-          <Button className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Add Grade
-          </Button>
+          <p className="text-muted-foreground">Enter and manage student exam grades and performance</p>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Award className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">87%</p>
-                <p className="text-sm text-muted-foreground">Class Average</p>
-              </div>
-            </div>
+      {/* Class and Student Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card data-testid="card-class-selection">
+          <CardHeader>
+            <CardTitle>Select Class</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedClass?.id || ''} onValueChange={(value) => {
+              const selected = classes?.find(c => c.id === value);
+              setSelectedClass(selected);
+              setSelectedStudent(null);
+            }}>
+              <SelectTrigger data-testid="select-grade-class">
+                <SelectValue placeholder="Choose a class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes?.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name} - {cls.subject}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-600">12</p>
-                <p className="text-sm text-muted-foreground">Improving Students</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <BarChart3 className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-yellow-600">3</p>
-                <p className="text-sm text-muted-foreground">Need Attention</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Award className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-purple-600">8</p>
-                <p className="text-sm text-muted-foreground">Top Performers</p>
-              </div>
-            </div>
+
+        <Card data-testid="card-student-selection">
+          <CardHeader>
+            <CardTitle>Select Student</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select 
+              value={selectedStudent?.id || ''} 
+              onValueChange={(value) => {
+                const selected = students?.find(s => s.id === value);
+                setSelectedStudent(selected);
+              }}
+              disabled={!selectedClass}
+            >
+              <SelectTrigger data-testid="select-grade-student">
+                <SelectValue placeholder={selectedClass ? "Choose a student" : "Select class first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {students?.map((student) => (
+                  <SelectItem key={student.id} value={student.id}>
+                    {student.name} (Roll: {student.rollNo})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select class" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
-                {classes.map(cls => (
-                  <SelectItem key={cls.id} value={cls.name}>{cls.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select subject" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Subjects</SelectItem>
-                {subjects.map(subject => (
-                  <SelectItem key={subject.id} value={subject.name}>{subject.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Performance Overview */}
+      {selectedStudent && performance && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card data-testid="card-total-exams">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <GraduationCap className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Total Exams</p>
+                  <p className="text-2xl font-bold text-blue-600">{performance.gradeCount}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Student Grades */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Student Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <Card data-testid="card-total-marks">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Target className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Total Marks</p>
+                  <p className="text-2xl font-bold text-green-600">{performance.totalMarks}/{performance.totalPossible}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-percentage">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Percentage</p>
+                  <p className="text-2xl font-bold text-purple-600">{performance.percentage}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-grade-status">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Award className={`h-8 w-8 ${performance.percentage >= 75 ? 'text-green-600' : performance.percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`} />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Grade</p>
+                  <p className={`text-2xl font-bold ${performance.percentage >= 75 ? 'text-green-600' : performance.percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {performance.percentage >= 75 ? 'A' : performance.percentage >= 60 ? 'B' : 'C'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Grades List */}
+      {selectedStudent && (
+        <Card data-testid="card-grades-list">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Exam Grades for {selectedStudent.name}</CardTitle>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-add-grade">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Grade
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingGrade ? 'Edit Grade' : 'Add New Grade'}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="subject">Subject</Label>
+                      <Input
+                        id="subject"
+                        value={gradeForm.subject}
+                        onChange={(e) => setGradeForm(prev => ({ ...prev, subject: e.target.value }))}
+                        placeholder="e.g., Mathematics"
+                        data-testid="input-grade-subject"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="examType">Exam Type</Label>
+                      <Select 
+                        value={gradeForm.examType} 
+                        onValueChange={(value) => setGradeForm(prev => ({ ...prev, examType: value }))}
+                      >
+                        <SelectTrigger data-testid="select-exam-type">
+                          <SelectValue placeholder="Select exam type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly Test</SelectItem>
+                          <SelectItem value="monthly">Monthly Exam</SelectItem>
+                          <SelectItem value="midterm">Mid-term Exam</SelectItem>
+                          <SelectItem value="final">Final Exam</SelectItem>
+                          <SelectItem value="assignment">Assignment</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="examDate">Exam Date</Label>
+                    <Input
+                      id="examDate"
+                      type="date"
+                      value={gradeForm.examDate}
+                      onChange={(e) => setGradeForm(prev => ({ ...prev, examDate: e.target.value }))}
+                      data-testid="input-exam-date"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="marksObtained">Marks Obtained</Label>
+                      <Input
+                        id="marksObtained"
+                        type="number"
+                        value={gradeForm.marksObtained}
+                        onChange={(e) => setGradeForm(prev => ({ ...prev, marksObtained: e.target.value }))}
+                        placeholder="85"
+                        data-testid="input-marks-obtained"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="totalMarks">Total Marks</Label>
+                      <Input
+                        id="totalMarks"
+                        type="number"
+                        value={gradeForm.totalMarks}
+                        onChange={(e) => setGradeForm(prev => ({ ...prev, totalMarks: e.target.value }))}
+                        placeholder="100"
+                        data-testid="input-total-marks"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <Input
+                      id="notes"
+                      value={gradeForm.notes}
+                      onChange={(e) => setGradeForm(prev => ({ ...prev, notes: e.target.value }))}
+                      placeholder="Additional comments..."
+                      data-testid="input-grade-notes"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleSaveGrade} 
+                    disabled={saveGrade.isPending}
+                    className="w-full"
+                    data-testid="button-save-grade"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {saveGrade.isPending ? 'Saving...' : (editingGrade ? 'Update Grade' : 'Save Grade')}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent>
+            {gradesLoading ? (
+              <div className="text-center py-8">Loading grades...</div>
+            ) : grades && grades.length > 0 ? (
               <div className="space-y-4">
-                {filteredData.map((student) => (
-                  <div key={student.id} className="border border-border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium text-primary">
-                          {student.student.split(' ').map(n => n[0]).join('')}
-                        </div>
+                {grades.map((grade, index) => (
+                  <div key={grade.id} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`grade-row-${index}`}>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4">
                         <div>
-                          <p className="font-medium">{student.student}</p>
-                          <p className="text-sm text-muted-foreground">{student.rollNo} • {student.class}</p>
+                          <p className="font-medium">{grade.subject}</p>
+                          <p className="text-sm text-muted-foreground">{grade.examType} - {new Date(grade.examDate).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-lg font-bold">
+                          {grade.marksObtained}/{grade.totalMarks}
+                          <span className="text-sm font-normal text-muted-foreground ml-2">
+                            ({((grade.marksObtained / grade.totalMarks) * 100).toFixed(1)}%)
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
-                          <p className="text-lg font-bold">{student.overall}%</p>
-                          <p className="text-xs text-muted-foreground">Overall</p>
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      {grade.notes && (
+                        <p className="text-sm text-muted-foreground mt-2">{grade.notes}</p>
+                      )}
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      {Object.entries(student).filter(([key]) => ['mathematics', 'physics', 'chemistry'].includes(key)).map(([subject, data]) => (
-                        <div key={subject} className="text-center p-3 bg-muted rounded-lg">
-                          <p className="text-sm font-medium capitalize mb-1">{subject}</p>
-                          <div className="flex items-center justify-center gap-2">
-                            <Badge className={getGradeColor(data.grade)}>
-                              {data.grade}
-                            </Badge>
-                            {getTrendIcon(data.trend)}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">{data.percentage}%</p>
-                        </div>
-                      ))}
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditGrade(grade)}
+                      data-testid={`button-edit-grade-${index}`}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Exams */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Exams</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentExams.map((exam, index) => (
-                  <div key={index} className="p-3 border border-border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-medium text-sm">{exam.subject}</p>
-                        <p className="text-xs text-muted-foreground">{exam.type}</p>
-                      </div>
-                      <span className="text-xs text-muted-foreground">{exam.date}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{exam.class}</span>
-                      <div className="text-right">
-                        <p className="text-sm font-bold">{exam.avgScore}%</p>
-                        <p className="text-xs text-muted-foreground">Class Avg</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No grades found. Add the first grade for this student.
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Grade Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Grade Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">A Grades</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 bg-muted rounded-full h-2">
-                      <div className="w-3/4 bg-green-500 h-2 rounded-full"></div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">75%</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">B Grades</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 bg-muted rounded-full h-2">
-                      <div className="w-1/2 bg-blue-500 h-2 rounded-full"></div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">20%</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">C Grades</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 bg-muted rounded-full h-2">
-                      <div className="w-1/4 bg-yellow-500 h-2 rounded-full"></div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">5%</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {!selectedClass && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Select a Class to Start</h3>
+            <p className="text-muted-foreground">Choose a class from above to view and manage student grades</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedClass && !selectedStudent && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Select a Student</h3>
+            <p className="text-muted-foreground">Choose a student to view and manage their grades</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

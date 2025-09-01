@@ -79,11 +79,12 @@ export const grades = pgTable("grades", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
   teacherId: uuid("teacher_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  moduleId: uuid("module_id").notNull().references(() => modules.id, { onDelete: "cascade" }),
-  grade: varchar("grade", { length: 10 }).notNull(),
-  percentage: integer("percentage"),
-  examType: varchar("exam_type", { length: 50 }).notNull(), // 'weekly', 'midterm', 'final'
+  subject: varchar("subject", { length: 100 }).notNull(),
+  marksObtained: integer("marks_obtained").notNull(),
+  totalMarks: integer("total_marks").notNull(),
+  examType: varchar("exam_type", { length: 50 }).notNull(), // 'weekly', 'monthly', 'midterm', 'final', 'assignment'
   examDate: timestamp("exam_date").notNull(),
+  notes: text("notes"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
