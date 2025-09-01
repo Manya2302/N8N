@@ -3,12 +3,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '../../lib/api';
 import { GraduationCap, Plus, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
 
 export default function TeacherManagement() {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: teachers, isLoading } = useQuery({
     queryKey: ['/api/teachers'],
@@ -16,16 +24,83 @@ export default function TeacherManagement() {
   });
 
   const activateTeacher = useMutation({
-    mutationFn: (teacherId) => apiClient.patch(`/teachers/${teacherId}/activate`),
+    mutationFn: (teacherId) => apiClient.patch(`/teachers/${teacherId}`, { isActive: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      toast({ title: 'Teacher activated successfully' });
     },
   });
 
+  const handleAddTeacher = () => {
+    setIsEditing(false);
+    setFormData({ email: '', password: '' });
+    setIsDialogOpen(true);
+  };
+
+  const handleEditTeacher = (teacher) => {
+    setIsEditing(true);
+    setSelectedTeacher(teacher);
+    setFormData({ email: teacher.email, password: '' });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (isEditing) {
+      updateTeacher.mutate({ id: selectedTeacher.id, data: formData });
+    } else {
+      addTeacher.mutate(formData);
+    }
+  };
+
+  const handleDeleteTeacher = (teacherId) => {
+    if (confirm('Are you sure you want to delete this teacher? This action cannot be undone.')) {
+      deleteTeacher.mutate(teacherId);
+    }
+  };
+
   const deactivateTeacher = useMutation({
-    mutationFn: (teacherId) => apiClient.patch(`/teachers/${teacherId}/deactivate`),
+    mutationFn: (teacherId) => apiClient.patch(`/teachers/${teacherId}`, { isActive: false }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      toast({ title: 'Teacher deactivated successfully' });
+    },
+  });
+
+  const addTeacher = useMutation({
+    mutationFn: (data) => apiClient.post('/teachers', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      setIsDialogOpen(false);
+      setFormData({ email: '', password: '' });
+      toast({ title: 'Teacher added successfully' });
+    },
+    onError: (error) => {
+      toast({ title: 'Error adding teacher', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const updateTeacher = useMutation({
+    mutationFn: ({ id, data }) => apiClient.patch(`/teachers/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      setIsDialogOpen(false);
+      setFormData({ email: '', password: '' });
+      setIsEditing(false);
+      toast({ title: 'Teacher updated successfully' });
+    },
+    onError: (error) => {
+      toast({ title: 'Error updating teacher', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteTeacher = useMutation({
+    mutationFn: (teacherId) => apiClient.delete(`/teachers/${teacherId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      toast({ title: 'Teacher deleted successfully' });
+    },
+    onError: (error) => {
+      toast({ title: 'Error deleting teacher', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -57,7 +132,7 @@ export default function TeacherManagement() {
           </h1>
           <p className="text-muted-foreground">Manage teacher accounts and permissions</p>
         </div>
-        <Button data-testid="button-add-teacher">
+        <Button onClick={handleAddTeacher} data-testid="button-add-teacher">
           <Plus className="w-4 h-4 mr-2" />
           Add New Teacher
         </Button>
@@ -138,8 +213,22 @@ export default function TeacherManagement() {
                         <UserCheck className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" data-testid={`button-edit-${index}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleEditTeacher(teacher)}
+                      data-testid={`button-edit-${index}`}
+                    >
                       <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteTeacher(teacher.id)}
+                      disabled={deleteTeacher.isPending}
+                      data-testid={`button-delete-${index}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -153,6 +242,55 @@ export default function TeacherManagement() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add/Edit Teacher Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Edit Teacher' : 'Add New Teacher'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="teacher@school.com"
+                data-testid="input-teacher-email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">{isEditing ? 'New Password (leave blank to keep current)' : 'Password'}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder={isEditing ? 'Leave blank to keep current password' : 'Password'}
+                data-testid="input-teacher-password"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              data-testid="button-cancel-teacher"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={addTeacher.isPending || updateTeacher.isPending || !formData.email || (!isEditing && !formData.password)}
+              data-testid="button-save-teacher"
+            >
+              {addTeacher.isPending || updateTeacher.isPending ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

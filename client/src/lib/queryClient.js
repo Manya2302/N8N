@@ -26,8 +26,19 @@ export async function apiRequest(
 export const getQueryFn =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    // Add auth token if available
+    const authToken = localStorage.getItem('accessToken');
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     const res = await fetch(queryKey.join("/"), {
       credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

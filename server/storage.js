@@ -432,16 +432,6 @@ class PostgresStorage {
         .select({ count: count() })
         .from(books)
         .where(sql`${books.totalCopies} > ${books.availableCopies}`);
-      
-      const ebooksCount = await this.db
-        .select({ count: count() })
-        .from(books)
-        .where(eq(books.isEbook, true));
-        
-      const audiobooksCount = await this.db
-        .select({ count: count() })
-        .from(books)
-        .where(eq(books.isAudiobook, true));
         
       const categoriesCount = await this.db
         .select({ count: sql`COUNT(DISTINCT ${books.category})` })
@@ -450,8 +440,8 @@ class PostgresStorage {
       return {
         totalBooks: totalBooks[0]?.count || 0,
         borrowed: borrowedCount[0]?.count || 0,
-        ebooks: ebooksCount[0]?.count || 0,
-        audiobooks: audiobooksCount[0]?.count || 0,
+        ebooks: 0, // Not supported in current schema
+        audiobooks: 0, // Not supported in current schema
         categories: categoriesCount[0]?.count || 0
       };
     } catch (error) {
