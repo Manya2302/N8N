@@ -1,0 +1,27 @@
+Admin Dashboard:
+
+Fix the logout button CSS across all pages so it matches the width of the sidebar and apply a professional design.
+
+Implement full CRUD operations with database integration in the Teacher Management section (Add, Update, Delete teachers).
+
+In the Announcements section, enable the Add Announcement button and implement full CRUD functionality using a database.
+
+Insert dummy student data in the Student table to populate charts and graphs in the Fee Management section and improve its design for a more professional appearance.
+
+Fix the error on the Digital Library page: [plugin:runtime-error-plugin] Cannot read properties of undefined (reading 'totalBooks') at /client/src/pages/admin/DigitalLibrary.jsx:84:76 by ensuring libraryStats is properly defined and fetched from the backend.
+
+Teacher Dashboard:
+
+Enable the addition of classes by fetching the teacher ID from the Users table and associating classes accordingly; activate CRUD operations for classes using a database.
+
+In the Attendance section, implement a UI to mark attendance by first selecting a class from the database. On selection, open an Excel-like UI based on the class, allowing the teacher to mark attendance. Add a class field in the Student table to facilitate retrieval.
+
+In the Grades & Progress section, allow teachers to enter grades after selecting the class, student name, and exam name. Ensure the grades are saved in the database and locked after the first entry.
+
+In the Parent Communication section, add two parent phone number fields in the Students table. Implement a UI where the teacher selects a student, picks a parent’s number, writes a message, and stores it in the database. Add a button to "Arrange Meeting" which stores meeting data in a dedicated table.
+
+Implement full CRUD functionality for the Assignments section using a database.
+
+Enable Student Management functionality with full CRUD support.
+
+Ensure all operations display appropriate success or failure messages, e.g., "Meeting has been arranged" or "Meeting could not be stored in database." Populate all necessary tables with dummy data to allow complete CRUD operations testing. Validate and test all functionality thoroughly.

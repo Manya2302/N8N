@@ -21,9 +21,22 @@ export const refreshTokens = pgTable("refresh_tokens", {
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
+export const classes = pgTable("classes", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  teacherId: uuid("teacher_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  schedule: jsonb("schedule"), // {"monday": "09:00-10:00", "wednesday": "14:00-15:00"}
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+});
+
 export const students = pgTable("students", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   teacherId: uuid("teacher_id").references(() => users.id, { onDelete: "set null" }),
+  classId: uuid("class_id").references(() => classes.id, { onDelete: "set null" }),
   rollNo: varchar("roll_no", { length: 50 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   studentNumber: varchar("student_number", { length: 20 }),
@@ -96,6 +109,45 @@ export const announcements = pgTable("announcements", {
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
+export const books = pgTable("books", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title", { length: 255 }).notNull(),
+  author: varchar("author", { length: 255 }).notNull(),
+  isbn: varchar("isbn", { length: 20 }),
+  category: varchar("category", { length: 100 }).notNull(),
+  totalCopies: integer("total_copies").notNull().default(1),
+  availableCopies: integer("available_copies").notNull().default(1),
+  isEbook: boolean("is_ebook").notNull().default(false),
+  isAudiobook: boolean("is_audiobook").notNull().default(false),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+});
+
+export const communications = pgTable("communications", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  teacherId: uuid("teacher_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+  parentPhone: varchar("parent_phone", { length: 20 }).notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 50 }).notNull().default("message"), // 'message', 'meeting_request'
+  status: varchar("status", { length: 50 }).notNull().default("sent"), // 'sent', 'delivered', 'read'
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+});
+
+export const meetings = pgTable("meetings", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  teacherId: uuid("teacher_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("scheduled"), // 'scheduled', 'completed', 'cancelled'
+  meetingType: varchar("meeting_type", { length: 50 }).notNull().default("parent_teacher"), // 'parent_teacher', 'student_conference'
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -132,6 +184,29 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
 export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertClassSchema = createInsertSchema(classes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBookSchema = createInsertSchema(books).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCommunicationSchema = createInsertSchema(communications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMeetingSchema = createInsertSchema(meetings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Types

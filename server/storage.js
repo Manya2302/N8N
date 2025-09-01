@@ -11,17 +11,6 @@ import {
   assignments,
   announcements,
   refreshTokens,
-  feeCategories,
-  studentFees,
-  buses,
-  drivers,
-  routes,
-  studentTransport,
-  transportSchedule,
-  books,
-  bookBorrowings,
-  schoolStats,
-  teacherProfiles,
 } from "@shared/schema";
 
 
@@ -434,20 +423,99 @@ class PostgresStorage {
 
   // Digital Library methods
   async getLibraryStats() {
-    const totalBooks = await this.db.select({ count: count() }).from(books);
-    const availableBooks = await this.db.select({ count: count() }).from(books).where(sql`${books.availableCopies} > 0`);
-    
-    return {
-      totalBooks: totalBooks[0]?.count || 0,
-      availableBooks: availableBooks[0]?.count || 0,
-      borrowedBooks: (totalBooks[0]?.count || 0) - (availableBooks[0]?.count || 0),
-      overdueBooks: 3, // Mock data
-      newArrivals: 2 // Mock data
-    };
+    try {
+      // Import books table dynamically to avoid circular dependency issues
+      const { books } = await import("@shared/schema");
+      
+      const totalBooks = await this.db.select({ count: count() }).from(books);
+      const borrowedCount = await this.db
+        .select({ count: count() })
+        .from(books)
+        .where(sql`${books.totalCopies} > ${books.availableCopies}`);
+      
+      const ebooksCount = await this.db
+        .select({ count: count() })
+        .from(books)
+        .where(eq(books.isEbook, true));
+        
+      const audiobooksCount = await this.db
+        .select({ count: count() })
+        .from(books)
+        .where(eq(books.isAudiobook, true));
+        
+      const categoriesCount = await this.db
+        .select({ count: sql`COUNT(DISTINCT ${books.category})` })
+        .from(books);
+
+      return {
+        totalBooks: totalBooks[0]?.count || 0,
+        borrowed: borrowedCount[0]?.count || 0,
+        ebooks: ebooksCount[0]?.count || 0,
+        audiobooks: audiobooksCount[0]?.count || 0,
+        categories: categoriesCount[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching library stats:', error);
+      // Return fallback data if database query fails
+      return {
+        totalBooks: 0,
+        borrowed: 0,
+        ebooks: 0,
+        audiobooks: 0,
+        categories: 0
+      };
+    }
   }
 
   async getBooks() {
-    return await this.db.select().from(books);
+    try {
+      const { books } = await import("@shared/schema");
+      return await this.db.select().from(books).orderBy(desc(books.createdAt));
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      return [];
+    }
+  }
+
+  async createBook(book) {
+    const { books } = await import("@shared/schema");
+    const result = await this.db.insert(books).values(book).returning();
+    return result[0];
+  }
+
+  async updateBook(id, updates) {
+    const { books } = await import("@shared/schema");
+    const result = await this.db
+      .update(books)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(books.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteBook(id) {
+    const { books } = await import("@shared/schema");
+    const result = await this.db.delete(books).where(eq(books.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async createAnnouncement(announcement) {
+    const result = await this.db.insert(announcements).values(announcement).returning();
+    return result[0];
+  }
+
+  async updateAnnouncement(id, updates) {
+    const result = await this.db
+      .update(announcements)
+      .set(updates)
+      .where(eq(announcements.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAnnouncement(id) {
+    const result = await this.db.delete(announcements).where(eq(announcements.id, id)).returning();
+    return result.length > 0;
   }
 
   // Analytics methods

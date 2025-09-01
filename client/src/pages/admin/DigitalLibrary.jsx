@@ -81,7 +81,7 @@ export default function DigitalLibrary() {
             <CardTitle className="text-lg">Total Books</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">{libraryStats.totalBooks}</div>
+            <div className="text-3xl font-bold text-primary">{libraryStats?.totalBooks || 0}</div>
             <p className="text-sm text-muted-foreground">Physical & Digital</p>
           </CardContent>
         </Card>
@@ -91,7 +91,7 @@ export default function DigitalLibrary() {
             <CardTitle className="text-lg">Currently Borrowed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-secondary">{libraryStats.borrowed}</div>
+            <div className="text-3xl font-bold text-secondary">{libraryStats?.borrowed || 0}</div>
             <p className="text-sm text-muted-foreground">Active loans</p>
           </CardContent>
         </Card>
@@ -101,7 +101,7 @@ export default function DigitalLibrary() {
             <CardTitle className="text-lg">E-books</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-accent">{libraryStats.ebooks}</div>
+            <div className="text-3xl font-bold text-accent">{libraryStats?.ebooks || 0}</div>
             <p className="text-sm text-muted-foreground">Digital copies</p>
           </CardContent>
         </Card>
@@ -111,7 +111,7 @@ export default function DigitalLibrary() {
             <CardTitle className="text-lg">Audiobooks</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{libraryStats.audiobooks}</div>
+            <div className="text-3xl font-bold text-green-600">{libraryStats?.audiobooks || 0}</div>
             <p className="text-sm text-muted-foreground">Audio format</p>
           </CardContent>
         </Card>
@@ -121,7 +121,7 @@ export default function DigitalLibrary() {
             <CardTitle className="text-lg">Categories</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-600">{libraryStats.categories}</div>
+            <div className="text-3xl font-bold text-purple-600">{libraryStats?.categories || 0}</div>
             <p className="text-sm text-muted-foreground">Subject areas</p>
           </CardContent>
         </Card>

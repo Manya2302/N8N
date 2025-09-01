@@ -9,7 +9,7 @@ import {
   insertAttendanceSchema,
   insertGradeSchema,
   insertAssignmentSchema,
-  insertAnnouncementSchema 
+  insertAnnouncementSchema
 } from "@shared/schema";
 import { storage } from "./storage";
 import { AuthService, generateCSRFToken } from "./auth.js";
@@ -181,7 +181,7 @@ export async function registerRoutes(app) {
 
   app.post('/api/auth/refresh', async (req, res) => {
     try {
-      const refreshToken = req.cookies.refreshToken;
+      const refreshToken = req.cookies?.refreshToken;
       if (!refreshToken) {
         return res.status(401).json({ error: 'No refresh token' });
       }
@@ -211,7 +211,7 @@ export async function registerRoutes(app) {
 
   app.post('/api/auth/logout', authMiddleware(storage), async (req, res) => {
     try {
-      const refreshToken = req.cookies.refreshToken;
+      const refreshToken = req.cookies?.refreshToken;
       if (refreshToken) {
         const refreshTokenHash = await AuthService.hashRefreshToken(refreshToken);
         await storage.deleteRefreshToken(refreshTokenHash);
@@ -601,6 +601,243 @@ export async function registerRoutes(app) {
     } catch (error) {
       console.error('Get analytics error:', error);
       res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Announcements CRUD routes
+  app.post('/api/announcements', authMiddleware(storage), roleMiddleware(['admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertAnnouncementSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      
+      const announcement = await storage.createAnnouncement(data);
+      res.status(201).json(announcement);
+    } catch (error) {
+      console.error('Create announcement error:', error);
+      res.status(400).json({ error: error.message || 'Failed to create announcement' });
+    }
+  });
+
+  app.patch('/api/announcements/:id', authMiddleware(storage), roleMiddleware(['admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertAnnouncementSchema.partial().parse(req.body);
+      const announcement = await storage.updateAnnouncement(req.params.id, data);
+      if (!announcement) {
+        return res.status(404).json({ error: 'Announcement not found' });
+      }
+      res.json(announcement);
+    } catch (error) {
+      console.error('Update announcement error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update announcement' });
+    }
+  });
+
+  app.delete('/api/announcements/:id', authMiddleware(storage), roleMiddleware(['admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const success = await storage.deleteAnnouncement(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Announcement not found' });
+      }
+      res.json({ message: 'Announcement deleted successfully' });
+    } catch (error) {
+      console.error('Delete announcement error:', error);
+      res.status(500).json({ error: 'Failed to delete announcement' });
+    }
+  });
+
+  // Classes CRUD routes (for teachers)
+  app.get('/api/classes', authMiddleware(storage), async (req, res) => {
+    try {
+      const classes = await storage.getClasses(req.user.id);
+      res.json(classes);
+    } catch (error) {
+      console.error('Get classes error:', error);
+      res.status(500).json({ error: 'Failed to fetch classes' });
+    }
+  });
+
+  app.post('/api/classes', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertClassSchema.parse({
+        ...req.body,
+        teacherId: req.user.id
+      });
+      
+      const class_ = await storage.createClass(data);
+      res.status(201).json(class_);
+    } catch (error) {
+      console.error('Create class error:', error);
+      res.status(400).json({ error: error.message || 'Failed to create class' });
+    }
+  });
+
+  app.patch('/api/classes/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertClassSchema.partial().parse(req.body);
+      const class_ = await storage.updateClass(req.params.id, data, req.user.id);
+      if (!class_) {
+        return res.status(404).json({ error: 'Class not found or unauthorized' });
+      }
+      res.json(class_);
+    } catch (error) {
+      console.error('Update class error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update class' });
+    }
+  });
+
+  app.delete('/api/classes/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const success = await storage.deleteClass(req.params.id, req.user.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Class not found or unauthorized' });
+      }
+      res.json({ message: 'Class deleted successfully' });
+    } catch (error) {
+      console.error('Delete class error:', error);
+      res.status(500).json({ error: 'Failed to delete class' });
+    }
+  });
+
+  // Book CRUD routes
+  app.post('/api/library/books', authMiddleware(storage), roleMiddleware(['admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertBookSchema.parse(req.body);
+      const book = await storage.createBook(data);
+      res.status(201).json(book);
+    } catch (error) {
+      console.error('Create book error:', error);
+      res.status(400).json({ error: error.message || 'Failed to create book' });
+    }
+  });
+
+  app.patch('/api/library/books/:id', authMiddleware(storage), roleMiddleware(['admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertBookSchema.partial().parse(req.body);
+      const book = await storage.updateBook(req.params.id, data);
+      if (!book) {
+        return res.status(404).json({ error: 'Book not found' });
+      }
+      res.json(book);
+    } catch (error) {
+      console.error('Update book error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update book' });
+    }
+  });
+
+  app.delete('/api/library/books/:id', authMiddleware(storage), roleMiddleware(['admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const success = await storage.deleteBook(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Book not found' });
+      }
+      res.json({ message: 'Book deleted successfully' });
+    } catch (error) {
+      console.error('Delete book error:', error);
+      res.status(500).json({ error: 'Failed to delete book' });
+    }
+  });
+
+  // Communication routes
+  app.get('/api/communications', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), async (req, res) => {
+    try {
+      const communications = await storage.getCommunications(req.user.id);
+      res.json(communications);
+    } catch (error) {
+      console.error('Get communications error:', error);
+      res.status(500).json({ error: 'Failed to fetch communications' });
+    }
+  });
+
+  app.post('/api/communications', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertCommunicationSchema.parse({
+        ...req.body,
+        teacherId: req.user.id
+      });
+      
+      const communication = await storage.createCommunication(data);
+      res.status(201).json({ message: 'Message sent successfully', communication });
+    } catch (error) {
+      console.error('Create communication error:', error);
+      res.status(400).json({ error: error.message || 'Message could not be stored in database' });
+    }
+  });
+
+  // Meeting routes
+  app.get('/api/meetings', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), async (req, res) => {
+    try {
+      const meetings = await storage.getMeetings(req.user.id);
+      res.json(meetings);
+    } catch (error) {
+      console.error('Get meetings error:', error);
+      res.status(500).json({ error: 'Failed to fetch meetings' });
+    }
+  });
+
+  app.post('/api/meetings', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertMeetingSchema.parse({
+        ...req.body,
+        teacherId: req.user.id
+      });
+      
+      const meeting = await storage.createMeeting(data);
+      res.status(201).json({ message: 'Meeting has been arranged', meeting });
+    } catch (error) {
+      console.error('Create meeting error:', error);
+      res.status(400).json({ error: error.message || 'Meeting could not be stored in database' });
+    }
+  });
+
+  // Student CRUD routes with class filtering
+  app.get('/api/students', authMiddleware(storage), async (req, res) => {
+    try {
+      const { classId } = req.query;
+      const students = await storage.getStudents(req.user.id, classId);
+      res.json(students);
+    } catch (error) {
+      console.error('Get students error:', error);
+      res.status(500).json({ error: 'Failed to fetch students' });
+    }
+  });
+
+  app.post('/api/students', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertStudentSchema.parse(req.body);
+      const student = await storage.createStudent(data);
+      res.status(201).json(student);
+    } catch (error) {
+      console.error('Create student error:', error);
+      res.status(400).json({ error: error.message || 'Failed to create student' });
+    }
+  });
+
+  app.patch('/api/students/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const data = insertStudentSchema.partial().parse(req.body);
+      const student = await storage.updateStudent(req.params.id, data);
+      if (!student) {
+        return res.status(404).json({ error: 'Student not found' });
+      }
+      res.json(student);
+    } catch (error) {
+      console.error('Update student error:', error);
+      res.status(400).json({ error: error.message || 'Failed to update student' });
+    }
+  });
+
+  app.delete('/api/students/:id', authMiddleware(storage), roleMiddleware(['teacher', 'admin']), csrfMiddleware, async (req, res) => {
+    try {
+      const success = await storage.deleteStudent(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Student not found' });
+      }
+      res.json({ message: 'Student deleted successfully' });
+    } catch (error) {
+      console.error('Delete student error:', error);
+      res.status(500).json({ error: 'Failed to delete student' });
     }
   });
 
